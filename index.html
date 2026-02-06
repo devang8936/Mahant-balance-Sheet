@@ -55,7 +55,7 @@
             </button>
         </div>
 
-        <div id="content-area" class="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-32 w-full max-w-md mx-auto relative scroll-smooth"></div>
+        <div id="content-area" class="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-32 w-full max-w-[1000px] mx-auto relative scroll-smooth"></div>
 
         <div class="bg-white border-t border-slate-100 flex justify-around items-center absolute bottom-0 w-full z-30 pb-safe pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.03)]">
             <button onclick="nav('entry')" id="nav-entry" class="flex flex-col items-center w-1/4 py-2 active:opacity-70 transition-opacity tab-active">
@@ -390,50 +390,166 @@
         async function renderAccounts() {
             const content = document.getElementById('content-area');
             const { data: accounts } = await dbClient.from('accounts').select('*');
-            if (!accounts) return; userAccounts = accounts;
+            if (!accounts) return; 
+            userAccounts = accounts;
             
-            const natures = ['Assets', 'Liabilities', 'Income', 'Expenses'];
-            let html = '<div class="mb-24 space-y-2 page-enter">';
+            let html = '<div class="mb-24 space-y-6 page-enter">';
             
-            natures.forEach(nature => {
-                let sectionAccounts = userAccounts.filter(acc => { const g = accountGroups.find(g => g.id === acc.group_id); return g && g.nature === nature; });
-                
-                // PRIORITY SORT FOR ASSETS: Banks/Cash first
+            // --- Helper: Generate Account Row HTML ---
+            const renderRow = (acc, nature, groupName) => {
+                let bal = parseFloat(acc.current_balance) || 0;
+                let valColor = 'text-slate-700';
+                let iconSvg = '';
+
+                // --- SVG Icons & Colors ---
                 if (nature === 'Assets') {
-                    sectionAccounts.sort((a, b) => {
-                        const isLiquidA = /bank|cash|wallet/i.test(a.name);
-                        const isLiquidB = /bank|cash|wallet/i.test(b.name);
-                        if (isLiquidA && !isLiquidB) return -1;
-                        if (!isLiquidA && isLiquidB) return 1;
-                        return a.name.localeCompare(b.name);
-                    });
+                    valColor = 'text-emerald-600';
+                    const nameLower = (acc.name + groupName).toLowerCase();
+                    if(nameLower.includes('cash') || nameLower.includes('wallet')) {
+                        // Wallet Icon
+                        iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" /><path d="M3 5v14a2 2 0 0 0 2 2h16v-5" /><path d="M18 12a2 2 0 0 0 0 4h4v-4Z" /></svg>';
+                    } else if (nameLower.includes('bank')) {
+                        // Bank/Building Icon
+                        iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>';
+                    } else if (nameLower.includes('invest') || nameLower.includes('sip')) {
+                        // Chart Up
+                        iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>';
+                    } else {
+                        // Generic Box
+                        iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M20 12V8H6a2 2 0 0 1 0-4h14v4" /><path d="M4 6v12a2 2 0 0 0 2 2h14v-4" /><path d="M18 12a2 2 0 0 0 0 4h4v-4Z" /></svg>';
+                    }
+                } else if (nature === 'Expenses') { 
+                    valColor = 'text-red-600'; 
+                    iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>'; // Up Arrow (Money Out)
+                } else if (nature === 'Income') { 
+                    valColor = 'text-blue-600'; 
+                    iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>'; // Down Arrow (Money In)
+                } else { 
+                    valColor = 'text-orange-600'; 
+                    iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'; // Alert
                 }
 
-                if(sectionAccounts.length > 0) {
-                    html += `<h3 class="font-bold text-slate-400 text-[10px] uppercase tracking-wider mt-6 mb-2 ml-1">${nature}</h3>`;
-                    html += sectionAccounts.map(acc => {
-                        const g = accountGroups.find(g => g.id === acc.group_id);
-                        let bal = parseFloat(acc.current_balance) || 0;
-                        let icon = '📁', clr = 'text-slate-600';
-                        if(g.nature === 'Assets') { icon = '<svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>'; clr = 'text-emerald-600'; }
-                        if(g.nature === 'Expenses') { icon = '<svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>'; clr = 'text-red-600'; }
-                        if(g.nature === 'Income') { icon = '<svg class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>'; clr = 'text-blue-600'; }
-                        if(g.nature === 'Liabilities') { icon = '<svg class="w-6 h-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>'; clr = 'text-orange-600'; }
+                // --- Row HTML with Truncate ---
+                return `
+                <div onclick="viewLedger('${acc.id}')" class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center active:scale-[0.98] transition-transform cursor-pointer">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="bg-slate-50 w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-slate-500">${iconSvg}</div>
+                        <div class="min-w-0">
+                             <div class="font-bold text-slate-700 text-sm truncate pr-2">${acc.name}</div>
+                             <div class="text-[10px] text-slate-400 font-medium truncate">${groupName}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                        <div class="font-mono font-bold text-sm ${valColor}">₹${bal.toLocaleString('en-IN')}</div>
+                        <button onclick="event.stopPropagation(); deleteAccount('${acc.id}')" class="text-slate-200 p-1 hover:text-red-500"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                    </div>
+                </div>`;
+            };
 
-                        return `<div onclick="viewLedger('${acc.id}')" class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center active:scale-[0.98] transition-transform cursor-pointer">
-                            <div class="flex items-center gap-3"><div class="bg-slate-50 w-10 h-10 rounded-full flex items-center justify-center">${icon}</div><div><div class="font-bold text-slate-800 text-sm">${acc.name}</div><div class="text-[10px] font-bold text-slate-400 uppercase">${g.name}</div></div></div>
-                            <div class="flex items-center gap-3"><div class="font-mono font-bold text-sm ${clr}">₹${bal.toLocaleString('en-IN')}</div>
-                            <button onclick="event.stopPropagation(); deleteAccount('${acc.id}')" class="text-slate-200 p-2 active:text-red-500"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></div>
-                        </div>`;
-                    }).join('');
+            // 1. ASSETS SPECIAL HANDLING (Group Cash & Bank)
+            const assetGroups = accountGroups.filter(g => g.nature === 'Assets');
+            const assetAccounts = userAccounts.filter(acc => {
+                const g = accountGroups.find(x => x.id === acc.group_id);
+                return g && g.nature === 'Assets';
+            });
+
+            if (assetAccounts.length > 0) {
+                html += `<div class="mt-6"><h2 class="font-bold text-slate-400 text-xs uppercase tracking-widest mb-3 border-b border-slate-100 pb-1">Assets</h2>`;
+
+                // Logic: Find accounts in groups named Cash/Bank/Wallet
+                const isLiquid = (name) => /cash|bank|wallet/i.test(name);
+                
+                // Separate Liquid vs Other Assets
+                let liquidAccounts = [];
+                let otherAssetGroups = [];
+
+                // Bucket by groups first
+                assetGroups.forEach(g => {
+                    const accs = assetAccounts.filter(a => a.group_id === g.id);
+                    if (accs.length === 0) return;
+                    
+                    if (isLiquid(g.name)) {
+                        liquidAccounts = [...liquidAccounts, ...accs];
+                    } else {
+                        otherAssetGroups.push({ group: g, accounts: accs });
+                    }
+                });
+
+                // Sort Liquid: Cash first, then Bank
+                liquidAccounts.sort((a,b) => {
+                     const aCash = /cash/i.test(a.name); const bCash = /cash/i.test(b.name);
+                     if(aCash && !bCash) return -1;
+                     if(!aCash && bCash) return 1;
+                     return a.name.localeCompare(b.name);
+                });
+
+                // RENDER: Cash & Bank Combined Section
+                if (liquidAccounts.length > 0) {
+                    html += `<div class="mb-4">
+                                <div class="text-[10px] font-bold text-blue-600 uppercase mb-2 pl-1 opacity-75">Cash & Bank</div>
+                                <div class="space-y-2">
+                                    ${liquidAccounts.map(acc => {
+                                        // Find group name for subtitle
+                                        const gName = accountGroups.find(x => x.id === acc.group_id)?.name || '';
+                                        return renderRow(acc, 'Assets', gName);
+                                    }).join('')}
+                                </div>
+                             </div>`;
+                }
+
+                // RENDER: Other Assets (Investments, Loans, etc.)
+                otherAssetGroups.forEach(item => {
+                    html += `<div class="mb-4">
+                                <div class="text-[10px] font-bold text-blue-600 uppercase mb-2 pl-1 opacity-75">${item.group.name}</div>
+                                <div class="space-y-2">
+                                    ${item.accounts.map(acc => renderRow(acc, 'Assets', item.group.name)).join('')}
+                                </div>
+                             </div>`;
+                });
+                html += `</div>`;
+            }
+
+            // 2. OTHER NATURES (Standard Rendering)
+            ['Liabilities', 'Income', 'Expenses'].forEach(nature => {
+                const natureGroups = accountGroups.filter(g => g.nature === nature);
+                const natureAccounts = userAccounts.filter(acc => {
+                    const g = accountGroups.find(x => x.id === acc.group_id);
+                    return g && g.nature === nature;
+                });
+
+                if (natureAccounts.length > 0) {
+                    html += `<div class="mt-6"><h2 class="font-bold text-slate-400 text-xs uppercase tracking-widest mb-3 border-b border-slate-100 pb-1">${nature}</h2>`;
+                    natureGroups.forEach(group => {
+                        const groupAccounts = natureAccounts.filter(acc => acc.group_id === group.id);
+                        if (groupAccounts.length > 0) {
+                            html += `<div class="mb-4">
+                                        <div class="text-[10px] font-bold text-blue-600 uppercase mb-2 pl-1 opacity-75">${group.name}</div>
+                                        <div class="space-y-2">
+                                            ${groupAccounts.map(acc => renderRow(acc, nature, group.name)).join('')}
+                                        </div>
+                                     </div>`;
+                        }
+                    });
+                    html += `</div>`;
                 }
             });
             
             html += '</div>';
+            
+            // FAB
             html += `<button onclick="document.getElementById('modal-account').classList.remove('hidden')" class="fixed bottom-32 right-6 bg-blue-600 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-transform active:scale-90 z-40"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg></button>`;
             
             content.innerHTML = html;
-            const sel = document.getElementById('acc-group'); sel.innerHTML = ''; accountGroups.forEach(g => sel.add(new Option(g.name, g.id)));
+            
+            // Populate Dropdown
+            const sel = document.getElementById('acc-group'); 
+            sel.innerHTML = ''; 
+            const sortedGroups = accountGroups.sort((a,b) => {
+                if(a.nature === b.nature) return a.name.localeCompare(b.name);
+                const natures = ['Assets', 'Liabilities', 'Income', 'Expenses'];
+                return natures.indexOf(a.nature) - natures.indexOf(b.nature);
+            });
+            sortedGroups.forEach(g => sel.add(new Option(`${g.name} (${g.nature})`, g.id)));
         }
 
         async function viewLedger(accId) {
@@ -556,10 +672,8 @@
             
             sFrom.innerHTML = ''; sTo.innerHTML = ''; sDay.innerHTML = '';
             
-            // Populate Days
             for(let i=1; i<=31; i++) sDay.add(new Option(i + (i===1?'st':i===2?'nd':i===3?'rd':'th') + " of every month", i));
             
-            // 1. FILTER: Liquid Assets (Bank, Cash, Wallet) -> Goes to Bottom Box (Pay From)
             const liquidAssets = userAccounts.filter(a => { 
                 const g = accountGroups.find(x => x.id === a.group_id); 
                 if (!g || g.nature !== 'Assets') return false;
@@ -567,17 +681,11 @@
                 return name.includes('bank') || name.includes('cash') || name.includes('wallet');
             });
 
-            // 2. FILTER: Destinations (Expenses, Liabilities, Investments) -> Goes to Top Box (Pay To)
             const destinations = userAccounts.filter(a => { 
                 const g = accountGroups.find(x => x.id === a.group_id); 
                 if (!g) return false;
-                
-                // Allow Expenses & Liabilities
                 if (g.nature === 'Expenses' || g.nature === 'Liabilities') return true;
-                
-                // Allow Assets ONLY if they are NOT Liquid (e.g. Gold, SIP, Friend)
                 if (g.nature === 'Assets' && !liquidAssets.includes(a)) return true;
-                
                 return false;
             });
 
