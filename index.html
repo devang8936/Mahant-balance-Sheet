@@ -4,132 +4,167 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Mahant Balance Sheet</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        const originalWarn = console.warn;
+        console.warn = (...args) => { if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return; originalWarn(...args); };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#5C3030', 
+                        surface: '#ffffff',
+                        green: { 50: '#f0fdf4', 100: '#dcfce7', 600: '#16a34a' },
+                        red: { 50: '#fef2f2', 100: '#fee2e2', 600: '#dc2626' },
+                        gray: { 50: '#f9fafb', 100: '#f3f4f6', 200: '#e5e7eb', 300: '#d1d5db', 400: '#9ca3af', 500: '#6b7280', 600: '#4b5563', 700: '#374151', 800: '#1f2937', 900: '#111827' }
+                    },
+                    fontFamily: {
+                        sans: ['Sora', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: { 'flat': '0 1px 3px rgba(0,0,0,0.02)', 'dropdown': '0 4px 20px rgba(0,0,0,0.08)' }
+                }
+            }
+        }
+    </script>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Mobile Reset */
-        body { background-color: #f8fafc; touch-action: manipulation; -webkit-tap-highlight-color: transparent; height: 100dvh; width: 100vw; overflow: hidden; }
-        .tab-active { color: #2563eb; background-color: #eff6ff; }
-        .tab-inactive { color: #64748b; }
-        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #2563eb; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        body { background-color: #f9fafb; touch-action: manipulation; -webkit-tap-highlight-color: transparent; height: 100dvh; width: 100vw; overflow: hidden; }
+        .tab-active { color: #5C3030; }
+        .tab-inactive { color: #9ca3af; }
+        .loader { border: 2px solid #f3f4f6; border-radius: 50%; border-top: 2px solid #5C3030; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .page-enter { animation: fadeUp 0.3s ease-out forwards; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .page-enter { animation: fadeUp 0.2s ease-out forwards; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .sheet-enter { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
         .pt-safe { padding-top: env(safe-area-inset-top); }
+        
+        /* Custom Dropdown Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+        /* Custom Date Picker & Native Collapsible details */
+        input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.5; transition: 0.2s; }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+        details > summary::-webkit-details-marker { display: none; }
     </style>
 </head>
-<body class="font-sans text-slate-800 select-none">
+<body class="font-sans text-gray-800 select-none">
 
     <div id="auth-screen" class="hidden flex-col items-center justify-center h-full w-full p-6 bg-white z-50">
         <div class="w-full max-w-sm flex flex-col items-center">
-            <div class="mb-6 p-4 bg-blue-50 rounded-2xl text-blue-600 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-12 h-12">
-                    <path fill-rule="evenodd" d="M2.25 13.5a8.25 8.25 0 018.25-8.25.75.75 0 01.75.75v6.75H18a.75.75 0 01.75.75 8.25 8.25 0 01-16.5 0z" clip-rule="evenodd" />
-                    <path fill-rule="evenodd" d="M12.75 3a.75.75 0 01.75-.75 8.25 8.25 0 018.25 8.25.75.75 0 01-.75.75h-7.5a.75.75 0 01-.75-.75V3z" clip-rule="evenodd" />
-                </svg>
+            <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg text-brand shadow-flat">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-10 h-10"><path fill-rule="evenodd" d="M2.25 13.5a8.25 8.25 0 018.25-8.25.75.75 0 01.75.75v6.75H18a.75.75 0 01.75.75 8.25 8.25 0 01-16.5 0z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M12.75 3a.75.75 0 01.75-.75 8.25 8.25 0 018.25 8.25.75.75 0 01-.75.75h-7.5a.75.75 0 01-.75-.75V3z" clip-rule="evenodd" /></svg>
             </div>
-            <h1 class="text-3xl font-extrabold text-slate-900 mb-1 tracking-tight">Mahant<span class="text-blue-600">ERP</span></h1>
-            <p class="text-slate-400 mb-8 text-sm font-medium">Personal Finance Manager</p>
+            <h1 class="text-2xl font-bold text-gray-900 mb-1 tracking-tight">Mahant<span class="text-brand">ERP</span></h1>
+            <p class="text-gray-500 mb-8 text-xs uppercase tracking-widest font-semibold">Finance Manager</p>
             <div class="w-full space-y-3">
-                <input type="email" id="email" placeholder="Email Address" class="w-full p-4 text-base border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-blue-500 outline-none transition-all">
-                <input type="password" id="password" placeholder="Password" class="w-full p-4 text-base border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-blue-500 outline-none transition-all">
-                <button onclick="handleLogin()" class="w-full bg-blue-600 active:bg-blue-700 text-white p-4 rounded-xl font-bold shadow-lg shadow-blue-200/50 mt-2 transition-transform active:scale-95">Sign In</button>
-                <button onclick="handleSignUp()" class="w-full text-blue-600 p-3 font-semibold text-sm">Create New Account</button>
+                <input type="email" id="email" placeholder="Email Address" class="w-full p-3 text-sm border border-gray-200 rounded-md bg-white focus:border-brand outline-none transition-colors">
+                <input type="password" id="password" placeholder="Password" class="w-full p-3 text-sm border border-gray-200 rounded-md bg-white focus:border-brand outline-none transition-colors">
+                <button onclick="handleLogin()" class="w-full bg-brand active:bg-[#4a2626] text-white p-3 rounded-md font-semibold text-sm shadow-flat mt-2 transition-colors">Sign In</button>
+                <button onclick="handleSignUp()" class="w-full text-brand p-3 font-semibold text-xs border border-transparent active:border-gray-200 rounded-md">Create New Account</button>
             </div>
-            <div id="auth-msg" class="text-red-500 text-sm mt-6 text-center font-medium h-5"></div>
+            <div id="auth-msg" class="text-red-600 text-xs mt-6 text-center font-medium h-5"></div>
         </div>
     </div>
 
-    <div id="app-screen" class="hidden flex-col h-full w-full overflow-hidden bg-slate-50">
-        <div class="bg-white px-4 pt-safe pb-3 shadow-sm border-b border-slate-100 flex justify-between items-end z-20 min-h-[80px]">
+    <div id="app-screen" class="hidden flex-col h-full w-full overflow-hidden bg-gray-50">
+        <div class="bg-white px-4 pt-safe pb-3 border-b border-gray-200 flex justify-between items-end z-20 min-h-[70px]">
             <div class="mb-1">
-                <h1 class="text-xl font-bold tracking-tight text-slate-900 leading-none" id="page-title">Entry</h1>
-                <p id="user-display" class="text-[10px] text-slate-400 font-medium truncate max-w-[200px] mt-1">Welcome</p>
+                <h1 class="text-lg font-bold tracking-tight text-gray-900 leading-none" id="page-title">Entry</h1>
+                <p id="user-display" class="text-[10px] text-gray-400 font-medium truncate max-w-[200px] mt-1">Welcome</p>
             </div>
-            <button onclick="handleLogout()" class="p-2 mb-1 bg-slate-50 rounded-lg text-slate-500 active:bg-slate-200">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>
+            <button onclick="handleLogout()" class="p-2 mb-1 border border-gray-200 rounded-md text-gray-500 active:bg-gray-50 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>
             </button>
         </div>
 
-        <div id="content-area" class="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-32 w-full max-w-[1000px] mx-auto relative scroll-smooth"></div>
+        <div id="content-area" class="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-32 w-full max-w-[1000px] mx-auto relative scroll-smooth custom-scroll"></div>
 
-        <div class="bg-white border-t border-slate-100 flex justify-around items-center absolute bottom-0 w-full z-30 pb-safe pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.03)]">
-            <button onclick="nav('entry')" id="nav-entry" class="flex flex-col items-center w-1/4 py-2 active:opacity-70 transition-opacity tab-active">
-                <svg class="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
-                <span class="text-[10px] font-bold uppercase tracking-wide">Entry</span>
-            </button>
-            <button onclick="nav('reports')" id="nav-reports" class="flex flex-col items-center w-1/4 py-2 active:opacity-70 transition-opacity tab-inactive">
-                <svg class="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" /></svg>
-                <span class="text-[10px] font-bold uppercase tracking-wide">Reports</span>
-            </button>
-            <button onclick="nav('accounts')" id="nav-accounts" class="flex flex-col items-center w-1/4 py-2 active:opacity-70 transition-opacity tab-inactive">
-                <svg class="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3" /></svg>
-                <span class="text-[10px] font-bold uppercase tracking-wide">Accounts</span>
-            </button>
-            <button onclick="nav('settings')" id="nav-settings" class="flex flex-col items-center w-1/4 py-2 active:opacity-70 transition-opacity tab-inactive">
-                <svg class="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                <span class="text-[10px] font-bold uppercase tracking-wide">Settings</span>
-            </button>
+        <div class="bg-white border-t border-gray-200 flex justify-around items-center absolute bottom-0 w-full z-30 pb-safe pt-2 shadow-flat">
+            <button onclick="nav('entry')" id="nav-entry" class="flex flex-col items-center w-1/4 py-2 active:opacity-70 transition-opacity tab-active"><svg class="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg><span class="text-[9px] font-semibold uppercase tracking-wider">Entry</span></button>
+            <button onclick="nav('reports')" id="nav-reports" class="flex flex-col items-center w-1/4 py-2 active:opacity-70 transition-opacity tab-inactive"><svg class="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" /></svg><span class="text-[9px] font-semibold uppercase tracking-wider">Reports</span></button>
+            <button onclick="nav('accounts')" id="nav-accounts" class="flex flex-col items-center w-1/4 py-2 active:opacity-70 transition-opacity tab-inactive"><svg class="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3" /></svg><span class="text-[9px] font-semibold uppercase tracking-wider">Accounts</span></button>
+            <button onclick="nav('settings')" id="nav-settings" class="flex flex-col items-center w-1/4 py-2 active:opacity-70 transition-opacity tab-inactive"><svg class="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg><span class="text-[9px] font-semibold uppercase tracking-wider">Settings</span></button>
         </div>
     </div>
 
-    <div id="modal-account" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center">
-        <div onclick="event.stopPropagation()" class="bg-white w-full sm:w-96 rounded-t-3xl sm:rounded-2xl p-6 pb-safe shadow-2xl sheet-enter">
-            <div class="w-12 h-1 bg-slate-200 rounded-full mx-auto mb-6 sm:hidden"></div>
-            <h3 class="text-xl font-bold mb-6 text-slate-800">New Ledger</h3>
+    <div id="modal-account" class="hidden fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center">
+        <div onclick="event.stopPropagation()" class="bg-white w-full sm:w-96 rounded-t-xl sm:rounded-xl p-6 pb-safe shadow-2xl sheet-enter border border-gray-200">
+            <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6 sm:hidden"></div>
+            <h3 class="text-lg font-bold mb-5 text-gray-900">New Ledger</h3>
             <div class="space-y-4">
-                <div><label class="text-xs font-bold text-slate-400 uppercase ml-1">Name</label><input id="acc-name" type="text" placeholder="e.g. HDFC Bank" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-base"></div>
-                <div><label class="text-xs font-bold text-slate-400 uppercase ml-1">Category</label><select id="acc-group" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-base"></select></div>
-                <div><label class="text-xs font-bold text-slate-400 uppercase ml-1">Opening Balance</label><input id="acc-opening" type="number" placeholder="0.00" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-mono text-base"></div>
+                <div><label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Name</label><input id="acc-name" type="text" placeholder="e.g. HDFC Bank" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand"></div>
+                <div><label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Category</label><select id="acc-group" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand"></select></div>
+                <div><label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Opening Balance</label><div class="relative mt-1"><span class="absolute left-3 top-2.5 text-gray-400 font-semibold text-sm">₹</span><input id="acc-opening" type="number" placeholder="0" class="w-full pl-7 p-2.5 bg-white border border-gray-200 rounded-md outline-none font-inter text-sm focus:border-brand"></div></div>
             </div>
             <div class="flex gap-3 mt-8">
-                <button onclick="document.getElementById('modal-account').classList.add('hidden')" class="flex-1 p-3 text-slate-500 font-bold bg-slate-100 rounded-xl active:scale-95 transition-transform">Cancel</button>
-                <button onclick="saveAccount()" class="flex-1 p-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg active:scale-95 transition-transform">Save</button>
+                <button onclick="document.getElementById('modal-account').classList.add('hidden')" class="flex-1 p-2.5 text-gray-600 font-semibold border border-gray-200 bg-white rounded-md active:bg-gray-50 transition-colors text-sm">Cancel</button>
+                <button onclick="saveAccount()" class="flex-1 p-2.5 bg-brand text-white rounded-md font-semibold active:bg-[#4a2626] transition-colors text-sm">Save</button>
             </div>
         </div>
     </div>
 
-    <div id="modal-recurring" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center">
-        <div onclick="event.stopPropagation()" class="bg-white w-full sm:w-96 rounded-t-3xl sm:rounded-2xl p-6 pb-safe shadow-2xl sheet-enter">
-            <div class="w-12 h-1 bg-slate-200 rounded-full mx-auto mb-6 sm:hidden"></div>
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-slate-800">Monthly Auto-Pay</h3>
-                <div class="text-xs bg-blue-50 text-blue-600 font-bold px-2 py-1 rounded">SIP / Rent / EMI</div>
+    <div id="modal-recurring" class="hidden fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center">
+        <div onclick="event.stopPropagation()" class="bg-white w-full sm:w-96 rounded-t-xl sm:rounded-xl p-6 pb-safe shadow-2xl sheet-enter border border-gray-200">
+            <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6 sm:hidden"></div>
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-lg font-bold text-gray-900">Monthly Auto-Pay</h3>
             </div>
             <div class="space-y-4">
-                <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Title</label><input id="rec-name" type="text" placeholder="e.g. Netflix, SIP, Rent" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-base font-bold text-slate-700"></div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Amount</label><div class="relative"><span class="absolute left-3 top-3 text-slate-400 font-bold">₹</span><input id="rec-amount" type="number" placeholder="0" class="w-full pl-7 p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-mono text-base font-bold"></div></div>
-                    <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Day of Month</label><select id="rec-day" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-base font-bold text-slate-700"></select></div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Title</label>
+                    <input id="rec-name" type="text" placeholder="e.g. Netflix, SIP, Rent" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors">
                 </div>
-                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Amount</label>
+                        <div class="relative mt-1">
+                            <span class="absolute left-3 top-2.5 text-gray-400 font-semibold text-sm">₹</span>
+                            <input id="rec-amount" type="number" placeholder="0" class="w-full pl-7 p-2.5 bg-white border border-gray-200 rounded-md outline-none font-inter text-sm focus:border-brand transition-colors">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Day of Month</label>
+                        <select id="rec-day" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors"></select>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 gap-3 pt-2">
                     <div>
-                        <label class="text-[10px] font-bold text-blue-500 uppercase ml-1">Pay To (Expense/Invest)</label>
-                        <select id="rec-to" class="w-full p-3 bg-slate-50 border border-blue-100 rounded-xl outline-none text-base text-slate-700 font-bold"></select>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Pay To (Expense/Invest)</label>
+                        <select id="rec-to" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors"></select>
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Pay From (Bank)</label>
-                        <select id="rec-from" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-base text-slate-700"></select>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Pay From (Bank)</label>
+                        <select id="rec-from" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors"></select>
                     </div>
                 </div>
-
             </div>
             <div class="flex gap-3 mt-8">
-                <button onclick="document.getElementById('modal-recurring').classList.add('hidden')" class="flex-1 p-3 text-slate-500 font-bold bg-slate-100 rounded-xl active:scale-95 transition-transform">Cancel</button>
-                <button onclick="saveRecurring()" class="flex-1 p-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg active:scale-95 transition-transform">Save Schedule</button>
+                <button onclick="document.getElementById('modal-recurring').classList.add('hidden')" class="flex-1 p-2.5 text-gray-600 font-semibold border border-gray-200 bg-white rounded-md active:bg-gray-50 transition-colors text-sm">Cancel</button>
+                <button onclick="saveRecurring()" class="flex-1 p-2.5 bg-brand text-white rounded-md font-semibold active:bg-[#4a2626] transition-colors text-sm">Save Schedule</button>
             </div>
         </div>
     </div>
 
     <script>
+        // Supabase Init
         const SUPABASE_URL = 'https://kjhqntxwucpgedjwfimp.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_S0jIGDLqzEMSof2qM1gkRw_QQS_sP7n';
-        
         const dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentUser = null;
@@ -137,13 +172,29 @@
         let userAccounts = [];
         let currentTab = 'entry';
 
+        // Globals for Reporting/Charts
+        let cachedEntries = [];
+        let cachedVouchers = [];
+        let cachedVoucherMap = {};
+        let chartInstance = null;
+
+        // Helpers
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            return new Date(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+        function getAccountName(id) {
+            const acc = userAccounts.find(a => a.id === id);
+            return acc ? acc.name : '';
+        }
+
         // ================= AUTH & INIT =================
         async function init() {
             const { data: { session } } = await dbClient.auth.getSession();
             if (session) {
                 currentUser = session.user;
                 showApp();
-                setTimeout(checkRecurringDue, 2000);
+                checkRecurringDue();
             } else {
                 document.getElementById('auth-screen').classList.replace('hidden', 'flex');
             }
@@ -167,10 +218,7 @@
             else alert("Account created! Check email or login.");
         }
 
-        async function handleLogout() {
-            await dbClient.auth.signOut();
-            location.reload();
-        }
+        async function handleLogout() { await dbClient.auth.signOut(); location.reload(); }
 
         function showApp() {
             document.getElementById('auth-screen').classList.add('hidden');
@@ -212,177 +260,441 @@
         }
 
         // ================= ENTRY MODULE =================
+        let currentEntryType = 'Payment';
+        let splitLines = [{ id: Date.now(), account: '', amount: '' }];
+        let activeDropdownIndices = {};
+
         function renderEntry() {
             const html = `
-                <div class="bg-white p-5 rounded-2xl shadow-sm mb-4 border border-slate-100 page-enter">
-                    <div class="flex mb-6 bg-slate-50 p-1 rounded-xl">
-                        <button onclick="switchEntryType('Payment')" id="btn-pay" class="flex-1 py-3 rounded-lg text-sm font-bold shadow-sm bg-white text-blue-600 transition-all">Payment</button>
-                        <button onclick="switchEntryType('Receipt')" id="btn-rec" class="flex-1 py-3 rounded-lg text-sm font-bold text-slate-500 transition-all">Receipt</button>
-                        <button onclick="switchEntryType('Contra')" id="btn-con" class="flex-1 py-3 rounded-lg text-sm font-bold text-slate-500 transition-all">Transfer</button>
+                <div class="bg-white p-4 rounded-md shadow-flat border border-gray-200 page-enter">
+                    
+                    <div class="flex mb-5 gap-2">
+                        <button onclick="switchEntryType('Payment')" id="btn-pay" class="flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-brand text-white border-brand">Payment</button>
+                        <button onclick="switchEntryType('Receipt')" id="btn-rec" class="flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-white text-gray-600 border-gray-200 hover:bg-gray-50">Receipt</button>
+                        <button onclick="switchEntryType('Contra')" id="btn-con" class="flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-white text-gray-600 border-gray-200 hover:bg-gray-50">Transfer</button>
                     </div>
+
                     <div class="space-y-5">
-                        <input type="date" id="entry-date" class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 outline-none text-base" value="${new Date().toISOString().split('T')[0]}">
-                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-100"><label class="text-[10px] font-bold text-blue-500 uppercase tracking-widest" id="lbl-1">PAID FOR</label><select id="select-1" class="w-full p-2 bg-transparent font-bold text-lg text-blue-900 outline-none border-b border-blue-200 text-base"></select></div>
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest" id="lbl-2">PAID FROM</label><select id="select-2" class="w-full p-2 bg-transparent font-bold text-lg text-slate-800 outline-none border-b border-slate-300 text-base"></select></div>
-                        <div class="relative"><span class="absolute left-4 top-4 text-slate-400 font-bold text-xl">₹</span><input type="number" id="entry-amount" placeholder="0" class="w-full pl-10 p-4 text-3xl font-bold rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 outline-none text-base"></div>
-                        <input type="text" id="entry-narration" placeholder="Add a note" class="w-full p-4 border border-slate-200 rounded-xl bg-slate-50 outline-none text-base">
-                        <button id="btn-save" onclick="submitTransaction()" class="w-full bg-blue-600 text-white p-4 rounded-xl font-bold text-lg shadow-lg active:scale-95 transform transition-all mt-2">Save Transaction</button>
+                        <div class="flex flex-col">
+                            <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1">Date</label>
+                            <input type="date" id="entry-date" class="w-full p-2 border border-gray-200 rounded-md outline-none text-sm font-inter focus:border-brand transition-colors text-gray-700" value="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        
+                        <div class="border border-gray-100 rounded-md p-3 bg-gray-50/50">
+                            <div id="split-lines-container" class="space-y-3"></div>
+                            <button onclick="addSplitLine()" class="w-full mt-3 py-2 bg-white text-gray-600 rounded-md font-semibold text-xs uppercase tracking-widest border border-gray-200 hover:bg-gray-50 transition-colors">
+                                + Add Another Split
+                            </button>
+                        </div>
+
+                        <div class="flex flex-col p-3 bg-gray-50 border border-gray-200 rounded-md">
+                            <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1" id="lbl-master">PAID FROM (BANK/CASH)</label>
+                            <select id="master-account" class="w-full p-2 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors text-gray-900 font-semibold"></select>
+                        </div>
+
+                        <div class="flex justify-between items-center py-2 border-t border-b border-gray-100 mt-2">
+                            <span class="font-semibold text-gray-500 uppercase text-xs tracking-widest">Total</span>
+                            <span id="entry-total-display" class="font-bold text-2xl font-inter text-gray-900">₹0</span>
+                        </div>
+
+                        <div class="flex flex-col">
+                            <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1">Narration</label>
+                            <input type="text" id="entry-narration" placeholder="Notes (Optional)" class="w-full p-2.5 border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors">
+                        </div>
+
+                        <button id="btn-save" onclick="submitTransaction()" class="w-full bg-brand text-white p-3.5 rounded-md font-semibold text-sm shadow-flat mt-2 active:bg-[#4a2626] transition-colors">Save Transaction</button>
                     </div>
                 </div>`;
             document.getElementById('content-area').innerHTML = html;
-            populateEntryDropdowns('Payment');
+            
+            // Do not reset splitLines if we just came from "Edit"
+            if(splitLines.length === 0) splitLines = [{ id: Date.now(), account: '', amount: '' }];
+            populateEntryDropdowns();
+            renderSplitLines();
         }
 
-        let currentEntryType = 'Payment';
         function switchEntryType(type) {
             currentEntryType = type;
-            const resetBtn = (id) => document.getElementById(id).className = "flex-1 py-3 rounded-lg text-sm font-bold text-slate-400 hover:bg-slate-200 transition-all";
-            const activeBtn = (id) => document.getElementById(id).className = "flex-1 py-3 rounded-lg text-sm font-bold shadow-sm bg-white text-blue-600 transition-all";
-            resetBtn('btn-pay'); resetBtn('btn-rec'); resetBtn('btn-con');
-            if(type === 'Payment') { activeBtn('btn-pay'); document.getElementById('lbl-1').innerText = "PAID FOR (EXPENSE)"; document.getElementById('lbl-2').innerText = "PAID FROM (ASSET)"; }
-            else if(type === 'Receipt') { activeBtn('btn-rec'); document.getElementById('lbl-1').innerText = "SOURCE (FROM)"; document.getElementById('lbl-2').innerText = "RECEIVED IN (TO)"; }
-            else { activeBtn('btn-con'); document.getElementById('lbl-1').innerText = "TRANSFER TO"; document.getElementById('lbl-2').innerText = "TRANSFER FROM"; }
-            populateEntryDropdowns(type);
+            const activeClass = "flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-brand text-white border-brand";
+            const inactiveClass = "flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-white text-gray-600 border-gray-200 hover:bg-gray-50";
+            
+            document.getElementById('btn-pay').className = type === 'Payment' ? activeClass : inactiveClass;
+            document.getElementById('btn-rec').className = type === 'Receipt' ? activeClass : inactiveClass;
+            document.getElementById('btn-con').className = type === 'Contra' ? activeClass : inactiveClass;
+            
+            if(type === 'Payment') { document.getElementById('lbl-master').innerText = "PAID FROM (BANK/CASH)"; }
+            else if(type === 'Receipt') { document.getElementById('lbl-master').innerText = "RECEIVED IN (BANK/CASH)"; }
+            else { document.getElementById('lbl-master').innerText = "TRANSFER FROM"; }
+            
+            splitLines = [{ id: Date.now(), account: '', amount: '' }];
+            populateEntryDropdowns();
+            renderSplitLines();
         }
 
-        function populateEntryDropdowns(type) {
-            const s1 = document.getElementById('select-1'); const s2 = document.getElementById('select-2'); s1.innerHTML = ''; s2.innerHTML = '';
+        function populateEntryDropdowns(presetMasterId = null) {
+            const masterSelect = document.getElementById('master-account');
+            masterSelect.innerHTML = '';
             
+            const cashBankAccs = userAccounts.filter(a => { const g = accountGroups.find(g => g.id === a.group_id); return g && g.nature === 'Assets' && /bank|cash|wallet/i.test(a.name); });
+            cashBankAccs.sort((a,b) => a.name.localeCompare(b.name)).forEach(a => masterSelect.add(new Option(a.name, a.id)));
+            
+            if (presetMasterId) {
+                masterSelect.value = presetMasterId;
+            } else {
+                const sbiBank = cashBankAccs.find(a => a.name.toLowerCase().includes('sbi'));
+                if(sbiBank) masterSelect.value = sbiBank.id;
+            }
+        }
+
+        function renderSplitLines() {
+            const container = document.getElementById('split-lines-container');
+            let html = '';
+            let total = 0;
+
+            const lbl = currentEntryType === 'Payment' ? 'PAID FOR (EXPENSE)' : currentEntryType === 'Receipt' ? 'SOURCE (INCOME)' : 'TRANSFER TO';
+
             const allAssets = userAccounts.filter(a => { const g = accountGroups.find(g => g.id === a.group_id); return g && g.nature === 'Assets'; });
-            const cashBankAccs = allAssets.filter(a => a.name.toLowerCase().includes('bank') || a.name.toLowerCase().includes('cash') || a.name.toLowerCase().includes('wallet'));
-            const otherAssets = allAssets.filter(a => !cashBankAccs.includes(a));
+            const cashBankAccs = allAssets.filter(a => /bank|cash|wallet/i.test(a.name));
+            const otherAssets = allAssets.filter(a => !/bank|cash|wallet/i.test(a.name));
             const expenses = userAccounts.filter(a => { const g = accountGroups.find(x => x.id === a.group_id); return g && g.nature === 'Expenses'; });
             const income = userAccounts.filter(a => { const g = accountGroups.find(x => x.id === a.group_id); return g && g.nature === 'Income'; });
             const liabilities = userAccounts.filter(a => { const g = accountGroups.find(x => x.id === a.group_id); return g && g.nature === 'Liabilities'; });
 
-            let list1 = [], list2 = [];
-            if (type === 'Payment') { list1 = [...expenses, ...liabilities, ...otherAssets]; list2 = cashBankAccs; } 
-            else if (type === 'Receipt') { list1 = [...income, ...liabilities, ...otherAssets]; list2 = cashBankAccs; } 
-            else { list1 = cashBankAccs; list2 = cashBankAccs; }
+            let splitOptions = [];
+            if (currentEntryType === 'Payment') splitOptions = [...expenses, ...liabilities, ...otherAssets];
+            else if (currentEntryType === 'Receipt') splitOptions = [...income, ...liabilities, ...otherAssets];
+            else splitOptions = cashBankAccs;
+            splitOptions.sort((a, b) => a.name.localeCompare(b.name));
 
-            const sortFn = (a, b) => a.name.localeCompare(b.name);
-            list1.sort(sortFn).forEach(a => s1.add(new Option(a.name, a.id))); 
-            list2.sort(sortFn).forEach(a => s2.add(new Option(a.name, a.id)));
+            splitLines.forEach((line) => {
+                total += parseFloat(line.amount || 0);
+                
+                let optionsHtml = '';
+                splitOptions.forEach(a => {
+                    const safeName = a.name.replace(/'/g, "\\'");
+                    optionsHtml += `<div onmousedown="selectSplitAccount(${line.id}, '${a.id}', '${safeName}')" class="account-option p-2.5 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0 truncate transition-colors">${a.name}</div>`;
+                });
+
+                html += `
+                <div class="flex flex-col gap-2 p-3 bg-white border border-gray-200 shadow-sm rounded-md relative">
+                    <div class="flex gap-2 items-start">
+                        <div class="flex-1 relative">
+                            <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">${lbl}</label>
+                            <input type="text"
+                                   id="search-${line.id}"
+                                   autocomplete="off"
+                                   value="${getAccountName(line.account)}"
+                                   oninput="filterAccounts(${line.id}, this.value)"
+                                   onfocus="openDropdown(${line.id})"
+                                   onblur="closeDropdown(${line.id})"
+                                   onkeydown="handleDropdownKey(event, ${line.id})"
+                                   placeholder="Search account..."
+                                   class="w-full mt-1 p-2 bg-white border border-gray-300 rounded-md text-sm outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all text-gray-900 font-semibold">
+                            
+                            <div id="dropdown-${line.id}" class="hidden absolute left-0 right-0 top-[60px] bg-white border border-gray-200 rounded-md shadow-dropdown max-h-48 overflow-y-auto z-50 custom-scroll">
+                                ${optionsHtml}
+                            </div>
+                        </div>
+                        
+                        <div class="w-1/3">
+                            <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Amount</label>
+                            <div class="relative mt-1">
+                                <span class="absolute left-2.5 top-2 text-gray-400 font-semibold text-sm">₹</span>
+                                <input type="number" 
+                                       oninput="updateSplit(${line.id}, 'amount', this.value)" 
+                                       value="${line.amount}" 
+                                       placeholder="0" 
+                                       class="w-full pl-6 p-2 font-inter bg-white border border-gray-300 rounded-md text-sm outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all font-semibold">
+                            </div>
+                        </div>
+                    </div>
+                    ${splitLines.length > 1 ? `<button onclick="removeSplit(${line.id})" class="text-[10px] text-red-500 font-bold uppercase tracking-widest self-end mt-1 hover:text-red-700 transition-colors">Remove</button>` : ''}
+                </div>`;
+            });
+
+            container.innerHTML = html;
+            document.getElementById('entry-total-display').innerText = '₹' + total.toLocaleString('en-IN');
+        }
+
+        // Keyboard Dropdown Navigation
+        function openDropdown(id) { 
+            document.getElementById(`dropdown-${id}`).classList.remove('hidden'); 
+            activeDropdownIndices[id] = -1;
+            updateDropdownHighlight(id);
+        }
+        function closeDropdown(id) { document.getElementById(`dropdown-${id}`).classList.add('hidden'); }
+        
+        function filterAccounts(id, searchTerm) {
+            const dropdown = document.getElementById(`dropdown-${id}`);
+            const items = dropdown.querySelectorAll('.account-option');
+            items.forEach(item => {
+                if (item.innerText.toLowerCase().includes(searchTerm.toLowerCase())) item.style.display = 'block';
+                else item.style.display = 'none';
+            });
+            updateSplit(id, 'account', ''); 
+            activeDropdownIndices[id] = -1;
+            updateDropdownHighlight(id);
+        }
+
+        function handleDropdownKey(event, id) {
+            const dropdown = document.getElementById(`dropdown-${id}`);
+            if(dropdown.classList.contains('hidden')) return;
+
+            const items = Array.from(dropdown.querySelectorAll('.account-option')).filter(el => el.style.display !== 'none');
+            if(items.length === 0) return;
+
+            if (activeDropdownIndices[id] === undefined) activeDropdownIndices[id] = -1;
+
+            if (event.key === 'ArrowDown') {
+                event.preventDefault(); 
+                activeDropdownIndices[id] = Math.min(activeDropdownIndices[id] + 1, items.length - 1);
+                updateDropdownHighlight(id, items);
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                activeDropdownIndices[id] = Math.max(activeDropdownIndices[id] - 1, 0);
+                updateDropdownHighlight(id, items);
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                if (activeDropdownIndices[id] >= 0 && activeDropdownIndices[id] < items.length) {
+                    items[activeDropdownIndices[id]].dispatchEvent(new Event('mousedown'));
+                }
+            }
+        }
+
+        function updateDropdownHighlight(id, itemsArray = null) {
+            const dropdown = document.getElementById(`dropdown-${id}`);
+            const items = itemsArray || Array.from(dropdown.querySelectorAll('.account-option')).filter(el => el.style.display !== 'none');
+            const activeIndex = activeDropdownIndices[id];
+
+            items.forEach((item, index) => {
+                if (index === activeIndex) {
+                    item.classList.add('bg-gray-100', 'text-brand', 'font-bold');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('bg-gray-100', 'text-brand', 'font-bold');
+                }
+            });
+        }
+
+        function selectSplitAccount(id, accountId, accountName) {
+            document.getElementById(`search-${id}`).value = accountName;
+            updateSplit(id, 'account', accountId);
+            closeDropdown(id);
+        }
+
+        function addSplitLine() { splitLines.push({ id: Date.now(), account: '', amount: '' }); renderSplitLines(); }
+        function removeSplit(id) { splitLines = splitLines.filter(line => line.id !== id); renderSplitLines(); }
+        
+        function updateSplit(id, field, value) {
+            const line = splitLines.find(l => l.id === id);
+            if(line) line[field] = value;
+            if(field === 'amount') {
+                let total = splitLines.reduce((sum, l) => sum + parseFloat(l.amount || 0), 0);
+                document.getElementById('entry-total-display').innerText = '₹' + total.toLocaleString('en-IN');
+            }
         }
 
         async function submitTransaction() {
             const btn = document.getElementById('btn-save');
-            const acc1 = document.getElementById('select-1').value; const acc2 = document.getElementById('select-2').value;
-            const amount = document.getElementById('entry-amount').value; const date = document.getElementById('entry-date').value;
+            const masterAccId = document.getElementById('master-account').value;
+            const date = document.getElementById('entry-date').value;
             const narration = document.getElementById('entry-narration').value;
-            if(!amount || !acc1 || !acc2) return alert("Fill details");
+            
+            if(!masterAccId) return alert("Select Bank/Cash account.");
+            let totalAmount = 0;
+            for(let line of splitLines) {
+                if(!line.account || !line.amount || parseFloat(line.amount) <= 0) return alert("Please select an account and valid amount for all splits.");
+                totalAmount += parseFloat(line.amount);
+            }
+            if(totalAmount <= 0) return alert("Total amount must be greater than zero.");
             
             btn.disabled = true; const originalText = btn.innerHTML;
-            btn.innerHTML = '<div class="loader border-white border-t-transparent w-6 h-6 mx-auto"></div>';
+            btn.innerHTML = '<div class="loader border-white border-t-transparent w-5 h-5 mx-auto"></div>';
 
             const { data: voucher, error: vError } = await dbClient.from('vouchers').insert({ user_id: currentUser.id, date, type: currentEntryType, narration }).select().single();
             if(vError) { btn.disabled = false; btn.innerHTML = originalText; return alert(vError.message); }
 
-            let drAcc, crAcc; 
-            if (currentEntryType === 'Payment') { drAcc = acc1; crAcc = acc2; } 
-            else if (currentEntryType === 'Receipt') { drAcc = acc2; crAcc = acc1; } 
-            else { drAcc = acc1; crAcc = acc2; } 
+            let dbEntries = [];
+            dbEntries.push({ voucher_id: voucher.id, account_id: masterAccId, amount: totalAmount, type: currentEntryType === 'Payment' ? 'Cr' : currentEntryType === 'Receipt' ? 'Dr' : 'Cr' });
+            splitLines.forEach(line => {
+                dbEntries.push({ voucher_id: voucher.id, account_id: line.account, amount: parseFloat(line.amount), type: currentEntryType === 'Payment' ? 'Dr' : currentEntryType === 'Receipt' ? 'Cr' : 'Dr' });
+            });
 
-            const entries = [{ voucher_id: voucher.id, account_id: drAcc, amount, type: 'Dr' }, { voucher_id: voucher.id, account_id: crAcc, amount, type: 'Cr' }];
-            await dbClient.from('voucher_entries').insert(entries);
+            await dbClient.from('voucher_entries').insert(dbEntries);
 
-            document.getElementById('entry-amount').value = ''; document.getElementById('entry-narration').value = '';
-            btn.classList.remove('bg-blue-600'); btn.classList.add('bg-green-600'); btn.innerHTML = 'Saved! ✓';
-            setTimeout(() => { btn.classList.remove('bg-green-600'); btn.classList.add('bg-blue-600'); btn.innerHTML = 'Save Transaction'; btn.disabled = false; }, 1500);
+            splitLines = [{ id: Date.now(), account: '', amount: '' }];
+            document.getElementById('entry-narration').value = '';
+            renderSplitLines();
+            
+            btn.classList.remove('bg-brand'); btn.classList.add('bg-green-600'); btn.innerHTML = 'Saved ✓';
+            setTimeout(() => { btn.classList.remove('bg-green-600'); btn.classList.add('bg-brand'); btn.innerHTML = 'Save Transaction'; btn.disabled = false; }, 1500);
         }
 
-        // ================= REPORTS MODULE =================
+        // ================= REPORTS & CHARTS MODULE =================
         async function renderReports() {
             const content = document.getElementById('content-area');
             content.innerHTML = '<div class="flex justify-center mt-20"><div class="loader"></div></div>';
 
             const { data: entries } = await dbClient.from('voucher_entries').select('*');
-            const { data: vouchers } = await dbClient.from('vouchers').select('id, date, narration, type').order('date', { ascending: true }); 
+            const { data: vouchers } = await dbClient.from('vouchers').select('id, date, narration, type').order('date', { ascending: false }); 
 
-            if (!entries || !vouchers) return content.innerHTML = '<div class="text-center mt-10 text-slate-400">No data found</div>';
+            if (!entries || !vouchers) return content.innerHTML = '<div class="text-center mt-10 text-gray-400">No data found</div>';
 
-            let tInc = 0, tExp = 0; const monthlyData = {}; const voucherMap = {};
-            vouchers.forEach(v => voucherMap[v.id] = v);
+            // Cache for Chart Filtering
+            cachedEntries = entries;
+            cachedVouchers = vouchers;
+            cachedVoucherMap = {};
+            vouchers.forEach(v => cachedVoucherMap[v.id] = v);
 
+            let tInc = 0, tExp = 0;
             entries.forEach(e => {
-                const voucher = voucherMap[e.voucher_id]; if (!voucher) return;
-                const acc = userAccounts.find(a => a.id === e.account_id); if (!acc) return;
-                const group = accountGroups.find(g => g.id === acc.group_id); if (!group) return;
-                const amt = parseFloat(e.amount);
-                
-                if (group.nature === 'Income') e.type === 'Cr' ? tInc += amt : tInc -= amt;
-                if (group.nature === 'Expenses') e.type === 'Dr' ? tExp += amt : tExp -= amt;
-
-                if (group.nature === 'Income' || group.nature === 'Expenses') {
-                    const dateObj = new Date(voucher.date);
-                    const key = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`; 
-                    if (!monthlyData[key]) monthlyData[key] = { income: 0, expense: 0, label: dateObj.toLocaleString('default', { month: 'short', year: '2-digit' }) };
-                    if (group.nature === 'Income') monthlyData[key].income += (e.type === 'Cr' ? amt : -amt);
-                    else if (group.nature === 'Expenses') monthlyData[key].expense += (e.type === 'Dr' ? amt : -amt);
+                const acc = userAccounts.find(a => a.id === e.account_id); 
+                const group = accountGroups.find(g => g?.id === acc?.group_id); 
+                if (group) {
+                    const amt = parseFloat(e.amount);
+                    if (group.nature === 'Income') e.type === 'Cr' ? tInc += amt : tInc -= amt;
+                    if (group.nature === 'Expenses') e.type === 'Dr' ? tExp += amt : tExp -= amt;
                 }
             });
 
-            const sortedKeys = Object.keys(monthlyData).sort();
-            const labels = sortedKeys.map(k => monthlyData[k].label);
-            const dataIncome = sortedKeys.map(k => monthlyData[k].income);
-            const dataExpense = sortedKeys.map(k => monthlyData[k].expense);
-
-            const recentVouchers = [...vouchers].reverse().slice(0, 50); 
-            let txnHtml = ''; let curMonth = '';
-            
+            // Prepare Collapsible Month HTML
+            const recentVouchers = vouchers.slice(0, 100); 
+            let monthsData = {};
             recentVouchers.forEach(v => {
                 const d = new Date(v.date);
                 const mStr = d.toLocaleString('default', { month: 'long', year: 'numeric' });
-                if (mStr !== curMonth) { curMonth = mStr; txnHtml += `<div class="bg-slate-100 px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-4 first:mt-0 sticky top-0">${curMonth}</div>`; }
-                
-                const vEnt = entries.filter(e => e.voucher_id === v.id);
-                const amt = vEnt.length ? vEnt[0].amount : 0;
-                let desc = v.narration || 'Transaction'; let amtColor = 'text-slate-700';
-
-                if(vEnt.length === 2) {
-                    const drEnt = vEnt.find(e => e.type === 'Dr'); const crEnt = vEnt.find(e => e.type === 'Cr');
-                    const drAcc = userAccounts.find(a => a.id === drEnt?.account_id); const crAcc = userAccounts.find(a => a.id === crEnt?.account_id);
-                    if(drAcc && crAcc) {
-                        if(v.type === 'Payment') { desc = `Paid <b>${drAcc.name}</b>`; amtColor = 'text-red-500'; }
-                        else if(v.type === 'Receipt') { desc = `Received <b>${crAcc.name}</b>`; amtColor = 'text-green-600'; }
-                        else { desc = `Transfer <b>${drAcc.name}</b>`; amtColor = 'text-slate-700'; }
-                    }
-                }
-
-                txnHtml += `
-                    <div class="p-4 flex justify-between items-center bg-white border-b border-slate-50">
-                        <div><div class="text-sm text-slate-800">${desc}</div><div class="text-xs text-slate-400 mt-0.5">${v.date}</div></div>
-                        <div class="flex items-center gap-3">
-                            <span class="font-bold ${amtColor}">₹${parseFloat(amt).toLocaleString()}</span>
-                            <div class="flex gap-2">
-                                <button onclick="editVoucher('${v.id}')" class="text-slate-300 hover:text-blue-500"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
-                                <button onclick="deleteVoucher('${v.id}')" class="text-slate-300 hover:text-red-500"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-                            </div>
-                        </div>
-                    </div>`;
+                if(!monthsData[mStr]) monthsData[mStr] = [];
+                monthsData[mStr].push(v);
             });
 
+            let txnHtml = '';
+            for (const [mStr, vList] of Object.entries(monthsData)) {
+                txnHtml += `
+                <details open class="group bg-white rounded-md shadow-flat border border-gray-200 overflow-hidden mb-3 last:mb-0">
+                    <summary class="list-none cursor-pointer bg-gray-50 px-3 py-2.5 border-b border-gray-200 flex justify-between items-center active:bg-gray-100 transition-colors">
+                        <span class="text-[10px] font-bold text-gray-600 uppercase tracking-widest">${mStr}</span>
+                        <svg class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </summary>
+                    <div class="flex flex-col">`;
+                
+                vList.forEach(v => {
+                    const vEnt = entries.filter(e => e.voucher_id === v.id);
+                    const amt = vEnt.length ? Math.max(...vEnt.map(e => e.amount)) : 0;
+                    
+                    let desc = v.narration || 'Transaction'; 
+                    let amtColor = v.type === 'Receipt' ? 'text-green-600' : v.type === 'Payment' ? 'text-red-600' : 'text-gray-900';
+
+                    if(vEnt.length === 2) {
+                        const drEnt = vEnt.find(e => e.type === 'Dr'); const crEnt = vEnt.find(e => e.type === 'Cr');
+                        const drAcc = userAccounts.find(a => a.id === drEnt?.account_id); const crAcc = userAccounts.find(a => a.id === crEnt?.account_id);
+                        if(drAcc && crAcc) {
+                            if(v.type === 'Payment') { desc = `Paid <b>${drAcc.name}</b>`; }
+                            else if(v.type === 'Receipt') { desc = `Received <b>${crAcc.name}</b>`; }
+                            else { desc = `Transfer <b>${drAcc.name}</b>`; }
+                        }
+                    } else if (vEnt.length > 2) {
+                        desc = `<b>Split Transaction</b> (${vEnt.length - 1} items)`;
+                    }
+
+                    txnHtml += `
+                        <div class="px-3 py-3 flex justify-between items-center border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                            <div class="min-w-0 pr-2">
+                                <div class="text-sm text-gray-800 truncate leading-tight">${desc}</div>
+                                <div class="text-[10px] text-gray-400 mt-1 font-medium">${formatDate(v.date)}</div>
+                            </div>
+                            <div class="flex flex-col items-end gap-1.5 shrink-0">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold font-inter text-sm ${amtColor}">${v.type === 'Payment' ? '-' : v.type === 'Receipt' ? '+' : ''}₹${parseFloat(amt).toLocaleString('en-IN')}</span>
+                                    <button onclick="editVoucher('${v.id}')" class="text-gray-300 hover:text-blue-600 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg></button>
+                                    <button onclick="deleteVoucher('${v.id}')" class="text-gray-300 hover:text-red-500 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                txnHtml += `</div></details>`;
+            }
+
             content.innerHTML = `
-                <div class="space-y-6 page-enter pb-32">
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100"><canvas id="incomeExpenseChart" height="200"></canvas></div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-green-100"><div class="text-xs font-bold text-slate-400 uppercase">Total Income</div><div class="text-xl font-bold text-green-600">₹${tInc.toLocaleString('en-IN')}</div></div>
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-red-100"><div class="text-xs font-bold text-slate-400 uppercase">Total Expense</div><div class="text-xl font-bold text-red-600">₹${tExp.toLocaleString('en-IN')}</div></div>
+                <div class="space-y-4 page-enter pb-32">
+                    <div class="bg-white p-4 rounded-md shadow-flat border border-gray-200">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Trend</h3>
+                            <select id="chart-filter" onchange="renderChart(this.value)" class="text-xs p-1.5 border border-gray-200 rounded-md bg-gray-50 outline-none text-gray-700 font-semibold focus:border-brand">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
+                        <canvas id="incomeExpenseChart" height="200"></canvas>
                     </div>
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">${txnHtml}</div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-white p-3 rounded-md shadow-flat border border-gray-200"><div class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Total Income</div><div class="text-lg font-bold font-inter text-green-600 mt-1">₹${tInc.toLocaleString('en-IN')}</div></div>
+                        <div class="bg-white p-3 rounded-md shadow-flat border border-gray-200"><div class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Total Expense</div><div class="text-lg font-bold font-inter text-red-600 mt-1">₹${tExp.toLocaleString('en-IN')}</div></div>
+                    </div>
+                    
+                    <div>${txnHtml}</div>
                 </div>`;
 
+            renderChart('daily');
+        }
+
+        function renderChart(filter) {
+            let chartData = {};
+            
+            cachedEntries.forEach(e => {
+                const voucher = cachedVoucherMap[e.voucher_id]; 
+                if (!voucher) return;
+                const acc = userAccounts.find(a => a.id === e.account_id); 
+                const group = accountGroups.find(g => g?.id === acc?.group_id); 
+                if (!group) return;
+                const amt = parseFloat(e.amount);
+
+                if (group.nature === 'Income' || group.nature === 'Expenses') {
+                    const d = new Date(voucher.date);
+                    let key, label;
+                    
+                    if (filter === 'daily') {
+                        key = voucher.date; 
+                        label = formatDate(voucher.date);
+                    } else if (filter === 'weekly') {
+                        let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6:1); 
+                        let weekStart = new Date(d.setDate(diff));
+                        key = weekStart.toISOString().split('T')[0];
+                        label = 'Wk of ' + formatDate(key);
+                    } else if (filter === 'monthly') {
+                        key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                        label = d.toLocaleString('default', { month: 'short', year: '2-digit' });
+                    } else if (filter === 'yearly') {
+                        key = `${d.getFullYear()}`;
+                        label = key;
+                    }
+
+                    if (!chartData[key]) chartData[key] = { income: 0, expense: 0, label: label };
+                    
+                    if (group.nature === 'Income') chartData[key].income += (e.type === 'Cr' ? amt : -amt);
+                    else if (group.nature === 'Expenses') chartData[key].expense += (e.type === 'Dr' ? amt : -amt);
+                }
+            });
+
+            const sortedKeys = Object.keys(chartData).sort();
+            const labels = sortedKeys.map(k => chartData[k].label);
+            const dataIncome = sortedKeys.map(k => chartData[k].income);
+            const dataExpense = sortedKeys.map(k => chartData[k].expense);
+
+            if (chartInstance) chartInstance.destroy();
             const ctx = document.getElementById('incomeExpenseChart').getContext('2d');
-            new Chart(ctx, {
+            chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: 'Income', data: dataIncome, borderColor: '#16a34a', backgroundColor: 'rgba(22, 163, 74, 0.1)', borderWidth: 2, tension: 0.3, fill: true },
-                        { label: 'Expense', data: dataExpense, borderColor: '#dc2626', backgroundColor: 'rgba(220, 38, 38, 0.05)', borderWidth: 2, tension: 0.3, fill: true }
+                        { label: 'Income', data: dataIncome, borderColor: '#16a34a', backgroundColor: 'rgba(22, 163, 74, 0.05)', borderWidth: 2, tension: 0.1, fill: true, pointRadius: 2 },
+                        { label: 'Expense', data: dataExpense, borderColor: '#dc2626', backgroundColor: 'transparent', borderWidth: 2, tension: 0.1, fill: false, borderDash: [5, 5], pointRadius: 2 }
                     ]
                 },
-                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } }, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }, interaction: { mode: 'index', intersect: false } }
+                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6, font: { family: 'Sora' } } } }, scales: { y: { beginAtZero: true, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } }, interaction: { mode: 'index', intersect: false } }
             });
         }
 
@@ -393,160 +705,101 @@
             if (!accounts) return; 
             userAccounts = accounts;
             
-            let html = '<div class="mb-24 space-y-6 page-enter">';
+            let html = '<div class="mb-24 space-y-4 page-enter">';
             
-            // --- Helper: Generate Account Row HTML ---
             const renderRow = (acc, nature, groupName) => {
                 let bal = parseFloat(acc.current_balance) || 0;
-                let valColor = 'text-slate-700';
-                let iconSvg = '';
+                let avatarColor = 'bg-gray-100 text-gray-500';
+                let initial = acc.name.substring(0,2).toUpperCase();
+                
+                if(nature === 'Assets') avatarColor = 'bg-blue-50 text-blue-600';
+                else if(nature === 'Expenses') avatarColor = 'bg-red-50 text-red-600';
+                else if(nature === 'Income') avatarColor = 'bg-green-50 text-green-600';
 
-                // --- SVG Icons & Colors ---
-                if (nature === 'Assets') {
-                    valColor = 'text-emerald-600';
-                    const nameLower = (acc.name + groupName).toLowerCase();
-                    if(nameLower.includes('cash') || nameLower.includes('wallet')) {
-                        // Wallet Icon
-                        iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" /><path d="M3 5v14a2 2 0 0 0 2 2h16v-5" /><path d="M18 12a2 2 0 0 0 0 4h4v-4Z" /></svg>';
-                    } else if (nameLower.includes('bank')) {
-                        // Bank/Building Icon
-                        iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>';
-                    } else if (nameLower.includes('invest') || nameLower.includes('sip')) {
-                        // Chart Up
-                        iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>';
-                    } else {
-                        // Generic Box
-                        iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M20 12V8H6a2 2 0 0 1 0-4h14v4" /><path d="M4 6v12a2 2 0 0 0 2 2h14v-4" /><path d="M18 12a2 2 0 0 0 0 4h4v-4Z" /></svg>';
-                    }
-                } else if (nature === 'Expenses') { 
-                    valColor = 'text-red-600'; 
-                    iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>'; // Up Arrow (Money Out)
-                } else if (nature === 'Income') { 
-                    valColor = 'text-blue-600'; 
-                    iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>'; // Down Arrow (Money In)
-                } else { 
-                    valColor = 'text-orange-600'; 
-                    iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'; // Alert
-                }
-
-                // --- Row HTML with Truncate ---
                 return `
-                <div onclick="viewLedger('${acc.id}')" class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center active:scale-[0.98] transition-transform cursor-pointer">
+                <div onclick="viewLedger('${acc.id}')" class="bg-white px-3 py-2 border-b border-gray-100 last:border-0 flex justify-between items-center active:bg-gray-50 cursor-pointer">
                     <div class="flex items-center gap-3 min-w-0">
-                        <div class="bg-slate-50 w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-slate-500">${iconSvg}</div>
+                        <div class="${avatarColor} w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-inter text-[10px] font-bold tracking-tighter">${initial}</div>
                         <div class="min-w-0">
-                             <div class="font-bold text-slate-700 text-sm truncate pr-2">${acc.name}</div>
-                             <div class="text-[10px] text-slate-400 font-medium truncate">${groupName}</div>
+                             <div class="font-semibold text-gray-900 text-sm truncate pr-2 leading-tight">${acc.name}</div>
+                             <div class="text-[10px] text-gray-400 font-medium truncate">${groupName}</div>
                         </div>
                     </div>
                     <div class="flex items-center gap-3 shrink-0">
-                        <div class="font-mono font-bold text-sm ${valColor}">₹${bal.toLocaleString('en-IN')}</div>
-                        <button onclick="event.stopPropagation(); deleteAccount('${acc.id}')" class="text-slate-200 p-1 hover:text-red-500"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                        <div class="font-inter font-semibold text-sm text-gray-900">₹${bal.toLocaleString('en-IN')}</div>
+                        <button onclick="event.stopPropagation(); deleteAccount('${acc.id}')" class="text-gray-300 p-1 hover:text-red-500 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                     </div>
                 </div>`;
             };
 
-            // 1. ASSETS SPECIAL HANDLING (Group Cash & Bank)
+            const natures = ['Assets', 'Liabilities', 'Income', 'Expenses'];
             const assetGroups = accountGroups.filter(g => g.nature === 'Assets');
-            const assetAccounts = userAccounts.filter(acc => {
-                const g = accountGroups.find(x => x.id === acc.group_id);
-                return g && g.nature === 'Assets';
-            });
+            const assetAccounts = userAccounts.filter(acc => assetGroups.find(x => x.id === acc.group_id));
 
             if (assetAccounts.length > 0) {
-                html += `<div class="mt-6"><h2 class="font-bold text-slate-400 text-xs uppercase tracking-widest mb-3 border-b border-slate-100 pb-1">Assets</h2>`;
-
-                // Logic: Find accounts in groups named Cash/Bank/Wallet
                 const isLiquid = (name) => /cash|bank|wallet/i.test(name);
-                
-                // Separate Liquid vs Other Assets
                 let liquidAccounts = [];
                 let otherAssetGroups = [];
 
-                // Bucket by groups first
                 assetGroups.forEach(g => {
                     const accs = assetAccounts.filter(a => a.group_id === g.id);
                     if (accs.length === 0) return;
-                    
-                    if (isLiquid(g.name)) {
-                        liquidAccounts = [...liquidAccounts, ...accs];
-                    } else {
-                        otherAssetGroups.push({ group: g, accounts: accs });
-                    }
+                    if (isLiquid(g.name)) liquidAccounts = [...liquidAccounts, ...accs];
+                    else otherAssetGroups.push({ group: g, accounts: accs });
                 });
 
-                // Sort Liquid: Cash first, then Bank
                 liquidAccounts.sort((a,b) => {
                      const aCash = /cash/i.test(a.name); const bCash = /cash/i.test(b.name);
-                     if(aCash && !bCash) return -1;
-                     if(!aCash && bCash) return 1;
+                     if(aCash && !bCash) return -1; if(!aCash && bCash) return 1;
                      return a.name.localeCompare(b.name);
                 });
 
-                // RENDER: Cash & Bank Combined Section
+                html += `<div class="bg-white border border-gray-200 rounded-md shadow-flat overflow-hidden">
+                            <div class="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                                <h2 class="font-bold text-gray-500 text-[10px] uppercase tracking-widest">Assets</h2>
+                            </div>`;
+                
                 if (liquidAccounts.length > 0) {
-                    html += `<div class="mb-4">
-                                <div class="text-[10px] font-bold text-blue-600 uppercase mb-2 pl-1 opacity-75">Cash & Bank</div>
-                                <div class="space-y-2">
-                                    ${liquidAccounts.map(acc => {
-                                        // Find group name for subtitle
-                                        const gName = accountGroups.find(x => x.id === acc.group_id)?.name || '';
-                                        return renderRow(acc, 'Assets', gName);
-                                    }).join('')}
-                                </div>
-                             </div>`;
+                    html += `<div class="px-3 py-1.5 bg-gray-50 border-b border-gray-100 text-[9px] font-bold text-blue-600 uppercase tracking-widest">Cash & Bank</div>
+                             <div>${liquidAccounts.map(acc => renderRow(acc, 'Assets', accountGroups.find(x => x.id === acc.group_id)?.name || '')).join('')}</div>`;
                 }
 
-                // RENDER: Other Assets (Investments, Loans, etc.)
                 otherAssetGroups.forEach(item => {
-                    html += `<div class="mb-4">
-                                <div class="text-[10px] font-bold text-blue-600 uppercase mb-2 pl-1 opacity-75">${item.group.name}</div>
-                                <div class="space-y-2">
-                                    ${item.accounts.map(acc => renderRow(acc, 'Assets', item.group.name)).join('')}
-                                </div>
-                             </div>`;
+                    html += `<div class="px-3 py-1.5 bg-gray-50 border-y border-gray-100 text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0">${item.group.name}</div>
+                             <div>${item.accounts.map(acc => renderRow(acc, 'Assets', item.group.name)).join('')}</div>`;
                 });
                 html += `</div>`;
             }
 
-            // 2. OTHER NATURES (Standard Rendering)
+            // Other Natures
             ['Liabilities', 'Income', 'Expenses'].forEach(nature => {
-                const natureGroups = accountGroups.filter(g => g.nature === nature);
-                const natureAccounts = userAccounts.filter(acc => {
-                    const g = accountGroups.find(x => x.id === acc.group_id);
-                    return g && g.nature === nature;
-                });
+                const nGroups = accountGroups.filter(g => g.nature === nature);
+                const nAccounts = userAccounts.filter(acc => nGroups.find(x => x.id === acc.group_id));
 
-                if (natureAccounts.length > 0) {
-                    html += `<div class="mt-6"><h2 class="font-bold text-slate-400 text-xs uppercase tracking-widest mb-3 border-b border-slate-100 pb-1">${nature}</h2>`;
-                    natureGroups.forEach(group => {
-                        const groupAccounts = natureAccounts.filter(acc => acc.group_id === group.id);
+                if (nAccounts.length > 0) {
+                    html += `<div class="bg-white border border-gray-200 rounded-md shadow-flat overflow-hidden mt-4">
+                                <div class="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                                    <h2 class="font-bold text-gray-500 text-[10px] uppercase tracking-widest">${nature}</h2>
+                                </div>`;
+                    nGroups.forEach(group => {
+                        const groupAccounts = nAccounts.filter(acc => acc.group_id === group.id);
                         if (groupAccounts.length > 0) {
-                            html += `<div class="mb-4">
-                                        <div class="text-[10px] font-bold text-blue-600 uppercase mb-2 pl-1 opacity-75">${group.name}</div>
-                                        <div class="space-y-2">
-                                            ${groupAccounts.map(acc => renderRow(acc, nature, group.name)).join('')}
-                                        </div>
-                                     </div>`;
+                            html += `<div class="px-3 py-1.5 bg-gray-50 border-y border-gray-100 text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0">${group.name}</div>
+                                     <div>${groupAccounts.map(acc => renderRow(acc, nature, group.name)).join('')}</div>`;
                         }
                     });
                     html += `</div>`;
                 }
             });
-            
             html += '</div>';
             
-            // FAB
-            html += `<button onclick="document.getElementById('modal-account').classList.remove('hidden')" class="fixed bottom-32 right-6 bg-blue-600 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-transform active:scale-90 z-40"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg></button>`;
-            
+            html += `<button onclick="document.getElementById('modal-account').classList.remove('hidden')" class="fixed bottom-24 right-4 bg-brand text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-transform active:scale-90 z-40"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg></button>`;
             content.innerHTML = html;
             
-            // Populate Dropdown
             const sel = document.getElementById('acc-group'); 
             sel.innerHTML = ''; 
             const sortedGroups = accountGroups.sort((a,b) => {
                 if(a.nature === b.nature) return a.name.localeCompare(b.name);
-                const natures = ['Assets', 'Liabilities', 'Income', 'Expenses'];
                 return natures.indexOf(a.nature) - natures.indexOf(b.nature);
             });
             sortedGroups.forEach(g => sel.add(new Option(`${g.name} (${g.nature})`, g.id)));
@@ -559,7 +812,7 @@
             const acc = userAccounts.find(a => a.id === accId);
             const group = accountGroups.find(g => g.id === acc.group_id);
             const { data: myEntries } = await dbClient.from('voucher_entries').select('*').eq('account_id', accId);
-            if(!myEntries || myEntries.length === 0) return content.innerHTML = '<div class="p-10 text-center text-slate-400">No transactions</div>';
+            if(!myEntries || myEntries.length === 0) return content.innerHTML = '<div class="p-10 text-center text-gray-400 text-sm">No transactions found.</div>';
 
             const vIds = myEntries.map(e => e.voucher_id);
             const { data: relatedEntries } = await dbClient.from('voucher_entries').select('*').in('voucher_id', vIds);
@@ -567,77 +820,100 @@
             
             let ledgerData = myEntries.map(e => {
                 const v = allVouchers.find(x => x.id === e.voucher_id);
-                const otherEntry = relatedEntries.find(r => r.voucher_id === e.voucher_id && r.account_id !== accId);
+                const otherEntries = relatedEntries.filter(r => r.voucher_id === e.voucher_id && r.account_id !== accId);
                 let description = v.narration || 'Transaction';
-                if (otherEntry) {
-                    const otherAcc = userAccounts.find(u => u.id === otherEntry.account_id);
+                
+                if (otherEntries.length === 1) {
+                    const otherAcc = userAccounts.find(u => u.id === otherEntries[0].account_id);
                     if (otherAcc) description = otherAcc.name; 
+                } else if (otherEntries.length > 1) {
+                    description = `Split Transaction (${otherEntries.length} accs)`;
                 }
+                
                 return { ...e, date: v.date, narration: v.narration, displayTitle: description, vId: v.id };
             }).sort((a, b) => new Date(a.date) - new Date(b.date));
 
             let runningBal = parseFloat(acc.opening_balance) || 0;
             const rows = ledgerData.map(d => {
                 const amt = parseFloat(d.amount);
-                let isPositive = false;
-                if(group.nature === 'Assets' || group.nature === 'Expenses') isPositive = (d.type === 'Dr'); 
-                else isPositive = (d.type === 'Cr');
+                let isPositive = (group.nature === 'Assets' || group.nature === 'Expenses') ? (d.type === 'Dr') : (d.type === 'Cr');
 
-                const change = isPositive ? amt : -amt;
-                runningBal += change;
-                const balColor = runningBal >= 0 ? 'text-green-600' : 'text-red-500';
-                const amtColor = isPositive ? 'text-green-600' : 'text-red-500';
+                runningBal += isPositive ? amt : -amt;
+                const balColor = runningBal >= 0 ? 'text-gray-600' : 'text-red-500';
+                const amtColor = isPositive ? 'text-green-600' : 'text-red-600';
 
                 return `
-                <div class="bg-white p-4 border-b border-slate-50 flex justify-between items-center text-sm active:bg-slate-50">
-                    <div class="w-2/3 pr-2">
-                        <div class="font-bold text-slate-800 text-base truncate">${d.displayTitle}</div>
-                        <div class="text-[10px] text-slate-400 mt-0.5 truncate">${d.narration ? d.narration : 'No notes'} • ${new Date(d.date).toLocaleDateString('en-GB')}</div>
+                <div class="px-3 py-3 border-b border-gray-100 flex justify-between items-center text-sm hover:bg-gray-50 transition-colors last:border-0">
+                    <div class="w-2/3 pr-2 min-w-0">
+                        <div class="font-semibold text-gray-900 text-sm truncate leading-tight">${d.displayTitle}</div>
+                        <div class="text-[10px] text-gray-400 mt-0.5 truncate font-medium">${d.narration ? d.narration + ' • ' : ''}${formatDate(d.date)}</div>
                     </div>
-                    <div class="text-right flex items-center gap-3">
-                        <div>
-                            <div class="font-bold text-base ${amtColor}">${isPositive ? '+' : ''}${amt.toLocaleString()}</div>
-                            <div class="text-[10px] font-mono font-bold mt-1 bg-slate-50 inline-block px-1 rounded ${balColor}">₹${runningBal.toLocaleString()}</div>
+                    <div class="text-right flex flex-col items-end gap-1.5 shrink-0">
+                        <div class="flex items-center gap-2">
+                            <div class="font-inter font-semibold text-sm ${amtColor}">${isPositive ? '+' : '-'}${amt.toLocaleString('en-IN')}</div>
+                            <button onclick="editVoucher('${d.vId}')" class="text-gray-300 hover:text-blue-600 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg></button>
+                            <button onclick="deleteVoucher('${d.vId}')" class="text-gray-300 hover:text-red-500 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                         </div>
-                        <button onclick="editVoucher('${d.vId}')" class="text-slate-200 hover:text-blue-500"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
+                        <div class="text-[9px] font-inter font-bold tracking-wider ${balColor}">₹${runningBal.toLocaleString('en-IN')}</div>
                     </div>
                 </div>`;
             });
 
             content.innerHTML = `
                 <div class="page-enter pb-32">
-                    <div class="bg-white p-4 sticky top-0 border-b border-slate-100 flex items-center gap-3 z-10 shadow-sm">
-                        <button onclick="renderAccounts()" class="bg-slate-50 p-2 rounded-full text-slate-600 active:bg-slate-200"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
-                        <div><h2 class="font-bold text-lg leading-tight text-slate-800">${acc.name}</h2>
-                        <div class="flex items-center gap-2 text-xs text-slate-500"><span class="bg-blue-50 text-blue-600 px-1.5 rounded font-bold text-[10px] uppercase">${group.name}</span><span class="font-bold ${runningBal >= 0 ? 'text-green-600' : 'text-red-500'}">₹${runningBal.toLocaleString()}</span></div></div>
+                    <div class="bg-white rounded-md shadow-flat border border-gray-200 overflow-hidden">
+                        <div class="p-3 bg-gray-50 border-b border-gray-200 flex items-center gap-3">
+                            <button onclick="renderAccounts()" class="p-1.5 border border-gray-200 bg-white rounded-md text-gray-500 active:bg-gray-100 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
+                            <div class="min-w-0">
+                                <h2 class="font-bold text-sm text-gray-900 truncate">${acc.name}</h2>
+                                <div class="text-[9px] font-bold text-brand uppercase tracking-widest">${group.name}</div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">${rows.reverse().join('')}</div>
                     </div>
-                    <div class="divide-y divide-slate-50">${rows.reverse().join('') || '<div class="p-10 text-center text-slate-400">No transactions</div>'}</div>
                 </div>`;
         }
 
+        // ================= EDIT / DELETE VOUCHER =================
         async function editVoucher(id) {
+
             const { data: voucher } = await dbClient.from('vouchers').select('*').eq('id', id).single();
             const { data: entries } = await dbClient.from('voucher_entries').select('*').eq('voucher_id', id);
             if(!voucher || !entries) return;
 
-            let type = voucher.type; let acc1, acc2;
-            if (type === 'Payment') { acc1 = entries.find(e => e.type === 'Dr').account_id; acc2 = entries.find(e => e.type === 'Cr').account_id; } 
-            else if (type === 'Receipt') { acc1 = entries.find(e => e.type === 'Cr').account_id; acc2 = entries.find(e => e.type === 'Dr').account_id; } 
-            else { acc1 = entries.find(e => e.type === 'Dr').account_id; acc2 = entries.find(e => e.type === 'Cr').account_id; }
+            // Determine which was the "Master" and which were the "Splits"
+            let masterType = voucher.type === 'Payment' || voucher.type === 'Contra' ? 'Cr' : 'Dr';
+            let splitType = voucher.type === 'Payment' || voucher.type === 'Contra' ? 'Dr' : 'Cr';
 
+            let masterEntry = entries.find(e => e.type === masterType);
+            let splitEntries = entries.filter(e => e.type === splitType);
+
+            if(!masterEntry || splitEntries.length === 0) return alert("Cannot automatically edit this legacy structure.");
+
+            // Remove old entry
             await dbClient.from('vouchers').delete().eq('id', id);
 
+            // Navigate to form and populate
             nav('entry');
             setTimeout(() => {
-                switchEntryType(type);
+                switchEntryType(voucher.type);
                 document.getElementById('entry-date').value = voucher.date;
-                document.getElementById('entry-amount').value = entries[0].amount;
                 document.getElementById('entry-narration').value = voucher.narration;
-                document.getElementById('select-1').value = acc1;
-                document.getElementById('select-2').value = acc2;
-            }, 200);
+                
+                // Set Master
+                populateEntryDropdowns(masterEntry.account_id);
+                
+                // Set Splits
+                splitLines = splitEntries.map(se => ({
+                    id: Date.now() + Math.random(),
+                    account: se.account_id,
+                    amount: se.amount
+                }));
+                renderSplitLines();
+            }, 300);
         }
 
+        async function deleteVoucher(id) { if(confirm("Permanently delete this transaction?")) { await dbClient.from('vouchers').delete().eq('id', id); renderReports(); } }
         async function saveAccount() {
             const name = document.getElementById('acc-name').value; const gId = document.getElementById('acc-group').value; const op = document.getElementById('acc-opening').value||0;
             if(!name) return alert("Name required");
@@ -646,20 +922,32 @@
             if(!error) { document.getElementById('modal-account').classList.add('hidden'); await refreshAccounts(); renderAccounts(); }
         }
 
+        // ================= SETTINGS =================
         async function renderSettings() {
             const { data: rec } = await dbClient.from('recurring_setup').select('*');
             const html = `
-                <div class="space-y-6 page-enter">
-                    <div><h3 class="font-bold text-slate-800 mb-3 flex items-center gap-2"><svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Recurring Payments</h3>
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                        ${rec && rec.length ? rec.map(r => `
-                            <div class="p-4 border-b border-slate-50 flex justify-between items-center">
-                                <div><div class="font-bold text-sm">${r.name}</div><div class="text-xs text-slate-400">Next: ${new Date(r.next_run_date).toLocaleDateString()}</div></div>
-                                <div class="flex items-center gap-3"><span class="font-bold text-slate-700">₹${r.amount}</span><button onclick="deleteRecurring('${r.id}')" class="text-slate-200 p-2 active:text-red-500"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></div>
-                            </div>`).join('') : '<div class="p-6 text-slate-400 text-center text-sm">No active items</div>'}
-                        <button onclick="openRecurringModal()" class="w-full p-4 text-blue-600 font-bold text-sm bg-blue-50 active:bg-blue-100">+ ADD NEW SCHEDULE</button>
-                    </div></div>
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4"><div class="text-xs text-slate-400 uppercase mb-2 font-bold">Account</div><div class="text-slate-800 font-medium mb-4">${currentUser.email}</div><button onclick="handleLogout()" class="w-full py-3 rounded-lg border border-red-100 text-red-500 text-sm font-bold active:bg-red-50">Sign Out</button></div>
+                <div class="space-y-4 page-enter">
+                    <div class="bg-white rounded-md shadow-flat border border-gray-200 overflow-hidden">
+                        <div class="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                            <h3 class="font-bold text-gray-500 text-[10px] uppercase tracking-widest">Recurring Auto-Pay</h3>
+                        </div>
+                        <div class="divide-y divide-gray-100">
+                            ${rec && rec.length ? rec.map(r => `
+                                <div class="p-3 flex justify-between items-center">
+                                    <div><div class="font-semibold text-sm text-gray-900">${r.name}</div><div class="text-[10px] text-gray-400 font-medium mt-0.5">Next: ${formatDate(r.next_run_date)}</div></div>
+                                    <div class="flex items-center gap-3"><span class="font-inter font-semibold text-sm text-gray-900">₹${r.amount}</span><button onclick="deleteRecurring('${r.id}')" class="text-gray-300 p-1 active:text-red-500 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></div>
+                                </div>`).join('') : '<div class="p-4 text-gray-400 text-center text-sm">No active schedules</div>'}
+                        </div>
+                        <div class="p-3 bg-gray-50 border-t border-gray-100">
+                            <button onclick="openRecurringModal()" class="w-full py-2 bg-white border border-gray-200 text-gray-700 rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-gray-100 transition-colors">+ Add Schedule</button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-md shadow-flat border border-gray-200 p-4 flex flex-col items-center">
+                        <div class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Signed In As</div>
+                        <div class="text-gray-900 font-semibold text-sm mb-4">${currentUser.email}</div>
+                        <button onclick="handleLogout()" class="w-full py-2.5 rounded-md border border-gray-200 text-gray-600 bg-gray-50 text-sm font-semibold active:bg-gray-100 transition-colors">Sign Out</button>
+                    </div>
                 </div>`;
             document.getElementById('content-area').innerHTML = html;
         }
@@ -669,29 +957,15 @@
             const sFrom = document.getElementById('rec-from'); 
             const sTo = document.getElementById('rec-to'); 
             const sDay = document.getElementById('rec-day');
-            
             sFrom.innerHTML = ''; sTo.innerHTML = ''; sDay.innerHTML = '';
             
-            for(let i=1; i<=31; i++) sDay.add(new Option(i + (i===1?'st':i===2?'nd':i===3?'rd':'th') + " of every month", i));
+            for(let i=1; i<=31; i++) sDay.add(new Option(i + (i===1?'st':i===2?'nd':i===3?'rd':'th') + " of month", i));
             
-            const liquidAssets = userAccounts.filter(a => { 
-                const g = accountGroups.find(x => x.id === a.group_id); 
-                if (!g || g.nature !== 'Assets') return false;
-                const name = a.name.toLowerCase();
-                return name.includes('bank') || name.includes('cash') || name.includes('wallet');
-            });
+            const liquidAssets = userAccounts.filter(a => { const g = accountGroups.find(x => x.id === a.group_id); return g && g.nature === 'Assets' && /bank|cash|wallet/i.test(a.name); });
+            const destinations = userAccounts.filter(a => { const g = accountGroups.find(x => x.id === a.group_id); return g && (g.nature === 'Expenses' || g.nature === 'Liabilities' || (g.nature === 'Assets' && !liquidAssets.includes(a))); });
 
-            const destinations = userAccounts.filter(a => { 
-                const g = accountGroups.find(x => x.id === a.group_id); 
-                if (!g) return false;
-                if (g.nature === 'Expenses' || g.nature === 'Liabilities') return true;
-                if (g.nature === 'Assets' && !liquidAssets.includes(a)) return true;
-                return false;
-            });
-
-            const sortFn = (a, b) => a.name.localeCompare(b.name);
-            liquidAssets.sort(sortFn).forEach(a => sFrom.add(new Option(a.name, a.id)));
-            destinations.sort(sortFn).forEach(a => sTo.add(new Option(a.name, a.id)));
+            liquidAssets.sort((a,b)=>a.name.localeCompare(b.name)).forEach(a => sFrom.add(new Option(a.name, a.id)));
+            destinations.sort((a,b)=>a.name.localeCompare(b.name)).forEach(a => sTo.add(new Option(a.name, a.id)));
         }
 
         async function saveRecurring() {
@@ -700,28 +974,14 @@
             if(!name || !amount || !dId || !cId) return alert("Fill all fields");
 
             const today = new Date(); let nextDate = new Date(); nextDate.setDate(day);
-            if (today.getDate() >= day) nextDate.setMonth(nextDate.getMonth() + 1);
+            if (today.getDate() > day) nextDate.setMonth(nextDate.getMonth() + 1);
 
             const { error } = await dbClient.from('recurring_setup').insert({ user_id: currentUser.id, name, amount, next_run_date: nextDate.toISOString().split('T')[0], frequency_days: 30, debit_account_id: dId, credit_account_id: cId });
-            if(!error) { document.getElementById('modal-recurring').classList.add('hidden'); renderSettings(); } else alert(error.message);
+            if(!error) { document.getElementById('modal-recurring').classList.add('hidden'); await checkRecurringDue(); renderSettings(); } else alert(error.message);
         }
 
-        async function checkRecurringDue() {
-            const { data: list } = await dbClient.from('recurring_setup').select('*'); if (!list || !list.length) return;
-            const today = new Date(); today.setHours(0,0,0,0);
-            const due = list.filter(i => new Date(i.next_run_date) <= today);
-            for (const item of due) {
-                const { data: v, error } = await dbClient.from('vouchers').insert({ user_id: currentUser.id, date: item.next_run_date, type: 'Payment', narration: `Auto: ${item.name}` }).select().single();
-                if (!error) {
-                    await dbClient.from('voucher_entries').insert([{ voucher_id: v.id, account_id: item.debit_account_id, amount: item.amount, type: 'Dr' }, { voucher_id: v.id, account_id: item.credit_account_id, amount: item.amount, type: 'Cr' }]);
-                    const oldDate = new Date(item.next_run_date); const newDate = new Date(oldDate); newDate.setMonth(newDate.getMonth() + 1);
-                    if (newDate.getDate() !== oldDate.getDate()) newDate.setDate(0); 
-                    await dbClient.from('recurring_setup').update({ next_run_date: newDate.toISOString().split('T')[0] }).eq('id', item.id);
-                }
-            }
-        }
+        async function checkRecurringDue() { await dbClient.rpc('process_recurring_payments'); }
 
-        async function deleteVoucher(id) { if(confirm("Delete this?")) { await dbClient.from('vouchers').delete().eq('id', id); renderReports(); } }
         async function deleteAccount(id) { if(confirm("Delete account?")) { const { error } = await dbClient.from('accounts').delete().eq('id', id); if(error) alert("Remove transactions first"); else renderAccounts(); } }
         async function deleteRecurring(id) { if(confirm("Stop auto-pay?")) { await dbClient.from('recurring_setup').delete().eq('id', id); renderSettings(); } }
 
