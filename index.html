@@ -331,20 +331,23 @@
             renderSplitLines();
         }
 
-        function populateEntryDropdowns(presetMasterId = null) {
-            const masterSelect = document.getElementById('master-account');
-            masterSelect.innerHTML = '';
-            
-            const cashBankAccs = userAccounts.filter(a => { const g = accountGroups.find(g => g.id === a.group_id); return g && g.nature === 'Assets' && /bank|cash|wallet/i.test(a.name); });
-            cashBankAccs.sort((a,b) => a.name.localeCompare(b.name)).forEach(a => masterSelect.add(new Option(a.name, a.id)));
-            
-            if (presetMasterId) {
-                masterSelect.value = presetMasterId;
-            } else {
-                const sbiBank = cashBankAccs.find(a => a.name.toLowerCase().includes('sbi'));
-                if(sbiBank) masterSelect.value = sbiBank.id;
+            function populateEntryDropdowns(presetMasterId = null) {
+                const masterSelect = document.getElementById('master-account');
+                masterSelect.innerHTML = '';
+                
+                const cashBankAccs = userAccounts.filter(a => { const g = accountGroups.find(g => g.id === a.group_id); return g && g.nature === 'Assets' && /bank|cash|wallet/i.test(a.name); });
+
+    let mainOptions = currentEntryType === 'Contra' ? [...userAccounts] : cashBankAccs;
+
+    mainOptions.sort((a,b) => a.name.localeCompare(b.name)).forEach(a => masterSelect.add(new Option(a.name, a.id)));
+                
+                if (presetMasterId) {
+                    masterSelect.value = presetMasterId;
+                } else {
+                    const sbiBank = cashBankAccs.find(a => a.name.toLowerCase().includes('sbi'));
+                    if(sbiBank) masterSelect.value = sbiBank.id;
+                }
             }
-        }
 
         function renderSplitLines() {
             const container = document.getElementById('split-lines-container');
