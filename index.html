@@ -361,10 +361,10 @@
             const liabilities = userAccounts.filter(a => { const g = accountGroups.find(x => x.id === a.group_id); return g && g.nature === 'Liabilities'; });
 
             let splitOptions = [];
-            if (currentEntryType === 'Payment') splitOptions = [...expenses, ...liabilities, ...otherAssets];
-            else if (currentEntryType === 'Receipt') splitOptions = [...income, ...liabilities, ...otherAssets];
-            else splitOptions = cashBankAccs;
-            splitOptions.sort((a, b) => a.name.localeCompare(b.name));
+if (currentEntryType === 'Payment') splitOptions = [...expenses, ...liabilities, ...otherAssets, ...income];
+else if (currentEntryType === 'Receipt') splitOptions = [...income, ...liabilities, ...otherAssets, ...expenses];
+else splitOptions = [...cashBankAccs, ...expenses, ...income, ...liabilities, ...otherAssets];
+splitOptions.sort((a, b) => a.name.localeCompare(b.name));
 
             splitLines.forEach((line) => {
                 total += parseFloat(line.amount || 0);
