@@ -38,6 +38,8 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <style>
         body { background-color: #f9fafb; touch-action: manipulation; -webkit-tap-highlight-color: transparent; height: 100dvh; width: 100vw; overflow: hidden; }
         .tab-active { color: #5C3030; }
@@ -51,13 +53,11 @@
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
         .pt-safe { padding-top: env(safe-area-inset-top); }
         
-        /* Custom Dropdown Scrollbar */
         .custom-scroll::-webkit-scrollbar { width: 5px; }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
-        /* Custom Date Picker & Native Collapsible details */
         input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.5; transition: 0.2s; }
         input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
         details > summary::-webkit-details-marker { display: none; }
@@ -103,27 +103,47 @@
         </div>
     </div>
 
-    <div id="modal-account" class="hidden fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center">
-        <div onclick="event.stopPropagation()" class="bg-white w-full sm:w-96 rounded-t-xl sm:rounded-xl p-6 pb-safe shadow-2xl sheet-enter border border-gray-200">
-            <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6 sm:hidden"></div>
-            <h3 class="text-lg font-bold mb-5 text-gray-900">New Ledger</h3>
+    <div id="modal-import-config" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full sm:w-96 rounded-xl p-6 shadow-2xl sheet-enter border border-gray-200">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-900">Import Checklist</h3>
+            <button onclick="document.getElementById('modal-import-config').classList.add('hidden')" class="text-gray-400 hover:text-red-500 transition-colors">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <div class="space-y-4">
+            <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <p class="text-xs text-gray-700 font-medium leading-relaxed">
+                    <strong>Is your statement password-protected?</strong><br><br>
+                    Browsers cannot read encrypted bank files. Before importing, please open the statement in Excel, click <strong>Save As</strong>, and save it as an unprotected <strong>CSV</strong> or Excel file.
+                </p>
+            </div>
+            <button onclick="document.getElementById('import-file').click()" class="w-full py-3 bg-brand text-white font-bold text-xs rounded-md uppercase tracking-widest shadow-md active:bg-[#4a2626] transition-colors">I Understand, Select File</button>
+        </div>
+    </div>
+</div>
+</div>
+
+    <div id="modal-account" class="hidden fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4 sm:p-0">
+        <div onclick="event.stopPropagation()" class="bg-white w-full sm:w-96 rounded-xl p-6 pb-safe shadow-2xl sheet-enter border border-gray-200">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-lg font-bold text-gray-900">New Ledger</h3>
+                <button onclick="document.getElementById('modal-account').classList.add('hidden')" class="text-gray-400 hover:text-red-500 transition-colors"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
             <div class="space-y-4">
                 <div><label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Name</label><input id="acc-name" type="text" placeholder="e.g. HDFC Bank" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand"></div>
                 <div><label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Category</label><select id="acc-group" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand"></select></div>
                 <div><label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Opening Balance</label><div class="relative mt-1"><span class="absolute left-3 top-2.5 text-gray-400 font-semibold text-sm">₹</span><input id="acc-opening" type="number" placeholder="0" class="w-full pl-7 p-2.5 bg-white border border-gray-200 rounded-md outline-none font-inter text-sm focus:border-brand"></div></div>
             </div>
-            <div class="flex gap-3 mt-8">
-                <button onclick="document.getElementById('modal-account').classList.add('hidden')" class="flex-1 p-2.5 text-gray-600 font-semibold border border-gray-200 bg-white rounded-md active:bg-gray-50 transition-colors text-sm">Cancel</button>
-                <button onclick="saveAccount()" class="flex-1 p-2.5 bg-brand text-white rounded-md font-semibold active:bg-[#4a2626] transition-colors text-sm">Save</button>
-            </div>
+            <button onclick="saveAccount()" class="w-full mt-8 p-3 bg-brand text-white rounded-md font-bold text-xs uppercase tracking-widest active:bg-[#4a2626] transition-colors shadow-md">Save Account</button>
         </div>
     </div>
 
-    <div id="modal-recurring" class="hidden fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center">
-        <div onclick="event.stopPropagation()" class="bg-white w-full sm:w-96 rounded-t-xl sm:rounded-xl p-6 pb-safe shadow-2xl sheet-enter border border-gray-200">
-            <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6 sm:hidden"></div>
+    <div id="modal-recurring" class="hidden fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4 sm:p-0">
+        <div onclick="event.stopPropagation()" class="bg-white w-full sm:w-96 rounded-xl p-6 pb-safe shadow-2xl sheet-enter border border-gray-200">
             <div class="flex justify-between items-center mb-5">
                 <h3 class="text-lg font-bold text-gray-900">Monthly Auto-Pay</h3>
+                <button onclick="document.getElementById('modal-recurring').classList.add('hidden')" class="text-gray-400 hover:text-red-500 transition-colors"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
             <div class="space-y-4">
                 <div>
@@ -154,15 +174,27 @@
                     </div>
                 </div>
             </div>
-            <div class="flex gap-3 mt-8">
-                <button onclick="document.getElementById('modal-recurring').classList.add('hidden')" class="flex-1 p-2.5 text-gray-600 font-semibold border border-gray-200 bg-white rounded-md active:bg-gray-50 transition-colors text-sm">Cancel</button>
-                <button onclick="saveRecurring()" class="flex-1 p-2.5 bg-brand text-white rounded-md font-semibold active:bg-[#4a2626] transition-colors text-sm">Save Schedule</button>
+            <button onclick="saveRecurring()" class="w-full mt-8 p-3 bg-brand text-white rounded-md font-bold text-xs uppercase tracking-widest shadow-md active:bg-[#4a2626] transition-colors">Save Schedule</button>
+        </div>
+    </div>
+
+    <div id="modal-import" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-xl">
+                <h3 class="font-bold text-gray-900">Process Statement</h3>
+                <div class="flex gap-2 items-center">
+                    <button id="btn-view-single" onclick="setImportView('single')" class="px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-md bg-brand text-white transition-colors">Step-by-Step</button>
+                    <button id="btn-view-all" onclick="setImportView('all')" class="px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-md bg-white border border-gray-200 text-gray-600 transition-colors">List View</button>
+                    <button onclick="document.getElementById('modal-import').classList.add('hidden')" class="ml-2 text-gray-400 hover:text-red-500 transition-colors">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
             </div>
+            <div id="import-container" class="flex-1 overflow-y-auto p-4 custom-scroll bg-gray-100"></div>
         </div>
     </div>
 
     <script>
-        // Supabase Init
         const SUPABASE_URL = 'https://kjhqntxwucpgedjwfimp.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_S0jIGDLqzEMSof2qM1gkRw_QQS_sP7n';
         const dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -172,13 +204,15 @@
         let userAccounts = [];
         let currentTab = 'entry';
 
-        // Globals for Reporting/Charts
         let cachedEntries = [];
         let cachedVouchers = [];
         let cachedVoucherMap = {};
         let chartInstance = null;
 
-        // Helpers
+        let pendingImports = [];
+        let importViewMode = 'single';
+        let currentImportIdx = 0;
+
         function formatDate(dateString) {
             if (!dateString) return '';
             return new Date(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -188,12 +222,11 @@
             return acc ? acc.name : '';
         }
 
-        // ================= AUTH & INIT =================
         async function init() {
             const { data: { session } } = await dbClient.auth.getSession();
             if (session) {
                 currentUser = session.user;
-                showApp();
+                await showApp();
                 checkRecurringDue();
             } else {
                 document.getElementById('auth-screen').classList.replace('hidden', 'flex');
@@ -206,7 +239,7 @@
             document.getElementById('auth-msg').innerText = "Logging in...";
             const { data, error } = await dbClient.auth.signInWithPassword({ email, password });
             if (error) document.getElementById('auth-msg').innerText = error.message;
-            else { currentUser = data.user; showApp(); }
+            else { currentUser = data.user; await showApp(); }
         }
 
         async function handleSignUp() {
@@ -220,11 +253,11 @@
 
         async function handleLogout() { await dbClient.auth.signOut(); location.reload(); }
 
-        function showApp() {
+        async function showApp() {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.replace('hidden', 'flex');
             document.getElementById('user-display').innerText = currentUser.email;
-            loadInitialData();
+            await loadInitialData();
             nav('entry'); 
         }
 
@@ -259,7 +292,6 @@
             }, 100);
         }
 
-        // ================= ENTRY MODULE =================
         let currentEntryType = 'Payment';
         let splitLines = [{ id: Date.now(), account: '', amount: '' }];
         let activeDropdownIndices = {};
@@ -267,7 +299,6 @@
         function renderEntry() {
             const html = `
                 <div class="bg-white p-4 rounded-md shadow-flat border border-gray-200 page-enter">
-                    
                     <div class="flex mb-5 gap-2">
                         <button onclick="switchEntryType('Payment')" id="btn-pay" class="flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-brand text-white border-brand">Payment</button>
                         <button onclick="switchEntryType('Receipt')" id="btn-rec" class="flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-white text-gray-600 border-gray-200 hover:bg-gray-50">Receipt</button>
@@ -302,12 +333,14 @@
                             <input type="text" id="entry-narration" placeholder="Notes (Optional)" class="w-full p-2.5 border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors">
                         </div>
 
-                        <button id="btn-save" onclick="submitTransaction()" class="w-full bg-brand text-white p-3.5 rounded-md font-semibold text-sm shadow-flat mt-2 active:bg-[#4a2626] transition-colors">Save Transaction</button>
+                        <button id="btn-save" onclick="submitTransaction()" class="w-full bg-brand text-white p-3.5 rounded-md font-bold text-xs uppercase tracking-widest shadow-flat mt-2 active:bg-[#4a2626] transition-colors">Save Transaction</button>
+                        
+                        <input type="file" id="import-file" accept=".csv, .xlsx, .xls" class="hidden" onchange="handleImport(event)">
+<button onclick="document.getElementById('import-file').click()" class="w-full bg-white text-brand border border-brand p-3.5 rounded-md font-bold text-xs uppercase tracking-widest mt-3 hover:bg-gray-50 transition-colors">Import Excel Statement</button>
                     </div>
                 </div>`;
             document.getElementById('content-area').innerHTML = html;
             
-            // Do not reset splitLines if we just came from "Edit"
             if(splitLines.length === 0) splitLines = [{ id: Date.now(), account: '', amount: '' }];
             populateEntryDropdowns();
             renderSplitLines();
@@ -331,23 +364,23 @@
             renderSplitLines();
         }
 
-            function populateEntryDropdowns(presetMasterId = null) {
-                const masterSelect = document.getElementById('master-account');
-                masterSelect.innerHTML = '';
-                
-                const cashBankAccs = userAccounts.filter(a => { const g = accountGroups.find(g => g.id === a.group_id); return g && g.nature === 'Assets' && /bank|cash|wallet/i.test(a.name); });
+        function populateEntryDropdowns(presetMasterId = null) {
+            const masterSelect = document.getElementById('master-account');
+            masterSelect.innerHTML = '';
+            
+            const cashBankAccs = userAccounts.filter(a => { const g = accountGroups.find(g => g.id === a.group_id); return g && g.nature === 'Assets' && /bank|cash|wallet/i.test(a.name); });
 
-    let mainOptions = currentEntryType === 'Contra' ? [...userAccounts] : cashBankAccs;
+            let mainOptions = currentEntryType === 'Contra' ? [...userAccounts] : cashBankAccs;
 
-    mainOptions.sort((a,b) => a.name.localeCompare(b.name)).forEach(a => masterSelect.add(new Option(a.name, a.id)));
-                
-                if (presetMasterId) {
-                    masterSelect.value = presetMasterId;
-                } else {
-                    const sbiBank = cashBankAccs.find(a => a.name.toLowerCase().includes('sbi'));
-                    if(sbiBank) masterSelect.value = sbiBank.id;
-                }
+            mainOptions.sort((a,b) => a.name.localeCompare(b.name)).forEach(a => masterSelect.add(new Option(a.name, a.id)));
+            
+            if (presetMasterId) {
+                masterSelect.value = presetMasterId;
+            } else {
+                const sbiBank = cashBankAccs.find(a => a.name.toLowerCase().includes('sbi'));
+                if(sbiBank) masterSelect.value = sbiBank.id;
             }
+        }
 
         function renderSplitLines() {
             const container = document.getElementById('split-lines-container');
@@ -364,10 +397,10 @@
             const liabilities = userAccounts.filter(a => { const g = accountGroups.find(x => x.id === a.group_id); return g && g.nature === 'Liabilities'; });
 
             let splitOptions = [];
-if (currentEntryType === 'Payment') splitOptions = [...expenses, ...liabilities, ...otherAssets, ...income];
-else if (currentEntryType === 'Receipt') splitOptions = [...income, ...liabilities, ...otherAssets, ...expenses];
-else splitOptions = [...cashBankAccs, ...expenses, ...income, ...liabilities, ...otherAssets];
-splitOptions.sort((a, b) => a.name.localeCompare(b.name));
+            if (currentEntryType === 'Payment') splitOptions = [...expenses, ...liabilities, ...otherAssets, ...income];
+            else if (currentEntryType === 'Receipt') splitOptions = [...income, ...liabilities, ...otherAssets, ...expenses];
+            else splitOptions = [...cashBankAccs, ...expenses, ...income, ...liabilities, ...otherAssets];
+            splitOptions.sort((a, b) => a.name.localeCompare(b.name));
 
             splitLines.forEach((line) => {
                 total += parseFloat(line.amount || 0);
@@ -419,7 +452,6 @@ splitOptions.sort((a, b) => a.name.localeCompare(b.name));
             document.getElementById('entry-total-display').innerText = '₹' + total.toLocaleString('en-IN');
         }
 
-        // Keyboard Dropdown Navigation
         function openDropdown(id) { 
             document.getElementById(`dropdown-${id}`).classList.remove('hidden'); 
             activeDropdownIndices[id] = -1;
@@ -531,6 +563,196 @@ splitOptions.sort((a, b) => a.name.localeCompare(b.name));
             
             btn.classList.remove('bg-brand'); btn.classList.add('bg-green-600'); btn.innerHTML = 'Saved ✓';
             setTimeout(() => { btn.classList.remove('bg-green-600'); btn.classList.add('bg-brand'); btn.innerHTML = 'Save Transaction'; btn.disabled = false; }, 1500);
+        }
+
+        // ================= IMPORT STATEMENT LOGIC =================
+        let currentImportBuffer = null;
+
+function handleImport(e) {
+    const bankId = document.getElementById('master-account').value;
+    if (!bankId) {
+        document.getElementById('modal-import-config').classList.add('hidden');
+        e.target.value = '';
+        return alert("Select a PAID FROM/RECEIVED IN bank account first.");
+    }
+    
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+        try {
+            const wb = XLSX.read(new Uint8Array(evt.target.result), {type: 'array'});
+            const rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, raw: false});
+            
+            let headerIdx = -1;
+            for(let i=0; i < Math.min(rawData.length, 30); i++) {
+                if(!rawData[i]) continue;
+                const rowStr = rawData[i].map(c => (c||'').toString().toLowerCase().trim()).join(' ');
+                if(rowStr.includes('date') && (rowStr.includes('details') || rowStr.includes('description'))) { headerIdx = i; break; }
+            }
+            
+            if(headerIdx === -1) throw new Error("Could not find standard bank headers ('Date', 'Details').");
+            
+            const headers = rawData[headerIdx].map(h => (h||'').toString().toLowerCase().trim());
+            const dateCol = headers.findIndex(h => h === 'date' || h.includes('txn date'));
+            const descCol = headers.findIndex(h => h === 'details' || h.includes('description') || h.includes('narration'));
+            const drCol = headers.findIndex(h => h === 'debit');
+            const crCol = headers.findIndex(h => h === 'credit');
+
+            pendingImports = [];
+            for(let i = headerIdx + 1; i < rawData.length; i++) {
+                const row = rawData[i];
+                if(!row || row.length === 0 || !row[dateCol]) continue; 
+                
+                const debit = parseFloat((row[drCol] || '').toString().replace(/,/g, '')) || 0;
+                const credit = parseFloat((row[crCol] || '').toString().replace(/,/g, '')) || 0;
+                if(debit === 0 && credit === 0) continue;
+
+                let dateRaw = row[dateCol];
+                let cleanDate = new Date().toISOString().split('T')[0];
+                if(dateRaw) {
+                    const d = new Date(dateRaw);
+                    if(!isNaN(d.getTime())) cleanDate = d.toISOString().split('T')[0];
+                    else {
+                        const p = dateRaw.split(/[-/ ]/);
+                        if(p.length >= 3) cleanDate = isNaN(p[1]) ? new Date(`${p[1]} ${p[0]}, ${p[2]}`).toISOString().split('T')[0] : (p[0].length <= 2 ? `${p[2]}-${p[1]}-${p[0]}` : cleanDate);
+                    }
+                }
+
+                const amount = debit > 0 ? debit : credit;
+                pendingImports.push({ 
+                    id: Date.now() + Math.random(), 
+                    date: cleanDate, 
+                    narration: row[descCol] || 'Imported', 
+                    total: amount, 
+                    type: debit > 0 ? 'Payment' : 'Receipt',
+                    splits: [{ id: Date.now(), account_id: '', amount: amount }]
+                });
+            }
+            
+            document.getElementById('modal-import-config').classList.add('hidden');
+            document.getElementById('modal-import').classList.remove('hidden');
+            currentImportIdx = 0;
+            setImportView('single');
+            
+        } catch (err) {
+            if (err.message.toLowerCase().includes('password') || err.message.toLowerCase().includes('encrypt')) {
+                alert("This file is encrypted. Please open it in Excel, select 'Save As -> CSV', and upload the unprotected copy.");
+            } else {
+                alert("Failed to read file: " + err.message);
+            }
+        }
+        e.target.value = ''; 
+    };
+    reader.readAsArrayBuffer(file);
+}
+        function setImportView(mode) { 
+            importViewMode = mode; 
+            document.getElementById('btn-view-single').className = mode === 'single' ? "px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-md bg-brand text-white transition-colors" : "px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-md bg-white border border-gray-200 text-gray-600 transition-colors";
+            document.getElementById('btn-view-all').className = mode === 'all' ? "px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-md bg-brand text-white transition-colors" : "px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-md bg-white border border-gray-200 text-gray-600 transition-colors";
+            renderImportView(); 
+        }
+
+        function renderImportView() {
+            const container = document.getElementById('import-container');
+            if (pendingImports.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-500 p-10 font-bold uppercase tracking-widest">All items processed!</div>';
+                return;
+            }
+            
+            if (importViewMode === 'single') {
+                if(currentImportIdx >= pendingImports.length) currentImportIdx = 0;
+                container.innerHTML = generateImportCard(pendingImports[currentImportIdx], currentImportIdx, true);
+            } else {
+                container.innerHTML = `<div class="space-y-4">${pendingImports.map((item, i) => generateImportCard(item, i, false)).join('')}</div>`;
+            }
+        }
+
+        function generateImportCard(item, idx, isSingle) {
+            let allOptionsArray = [...userAccounts].sort((a, b) => a.name.localeCompare(b.name));
+            
+            let splitHtml = item.splits.map((split, sIdx) => `
+                <div class="flex gap-2 items-center mt-2">
+                    <select onchange="updateImportSplit(${idx}, ${sIdx}, 'account_id', this.value)" class="flex-1 p-2.5 text-sm border border-gray-300 rounded-md outline-none focus:border-brand font-semibold text-gray-800">
+                        <option value="">Select Account...</option>
+                        ${allOptionsArray.map(a => `<option value="${a.id}" ${split.account_id === a.id ? 'selected' : ''}>${a.name}</option>`).join('')}
+                    </select>
+                    <div class="relative w-1/3">
+                        <span class="absolute left-3 top-2.5 text-gray-400 font-bold text-sm">₹</span>
+                        <input type="number" onchange="updateImportSplit(${idx}, ${sIdx}, 'amount', this.value)" value="${split.amount}" class="w-full pl-7 p-2.5 text-sm font-inter font-bold border border-gray-300 rounded-md outline-none focus:border-brand">
+                    </div>
+                    ${item.splits.length > 1 ? `<button onclick="removeImportSplit(${idx}, ${sIdx})" class="text-red-500 font-bold text-xs p-2 hover:bg-red-50 rounded">X</button>` : ''}
+                </div>
+            `).join('');
+
+            const navButtons = isSingle ? `
+                <div class="flex justify-between mt-6 gap-3">
+                    <button onclick="skipImport(${idx})" class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs rounded-md uppercase tracking-widest transition-colors">Skip</button>
+                    <button onclick="saveImport(${idx})" class="flex-1 py-3 bg-brand active:bg-[#4a2626] text-white font-bold text-xs rounded-md uppercase tracking-widest shadow-md transition-colors">Save & Next</button>
+                </div>
+                <div class="flex justify-center items-center gap-6 mt-6 border-t border-gray-100 pt-4">
+                    <button onclick="navigateImport(-1)" class="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-brand disabled:opacity-30" ${idx === 0 ? 'disabled' : ''}>← Previous</button>
+                    <span class="text-[10px] font-bold bg-gray-100 px-3 py-1 rounded-full text-gray-500">${idx + 1} of ${pendingImports.length}</span>
+                    <button onclick="navigateImport(1)" class="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-brand disabled:opacity-30" ${idx === pendingImports.length - 1 ? 'disabled' : ''}>Next →</button>
+                </div>
+            ` : `
+                <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+                    <button onclick="skipImport(${idx})" class="w-1/4 py-2.5 bg-gray-200 text-gray-700 font-bold text-[10px] rounded uppercase tracking-widest hover:bg-gray-300 transition-colors">Skip</button>
+                    <button onclick="saveImport(${idx})" class="w-3/4 py-2.5 bg-brand text-white font-bold text-[10px] rounded uppercase tracking-widest shadow-md active:bg-[#4a2626] transition-colors">Save Transaction</button>
+                </div>
+            `;
+
+            return `
+                <div class="bg-white border border-gray-200 p-5 rounded-xl shadow-sm">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded uppercase tracking-widest">${item.date}</div>
+                        <div class="text-xl font-bold font-inter ${item.type === 'Payment' ? 'text-red-600' : 'text-green-600'}">${item.type === 'Payment' ? '-' : '+'}₹${item.total.toLocaleString('en-IN')}</div>
+                    </div>
+                    <div class="text-sm font-medium text-gray-800 bg-blue-50/50 p-3 rounded-lg border border-blue-100 mb-5 leading-relaxed">${item.narration}</div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Offset Account</label>
+                            <button onclick="addImportSplit(${idx})" class="text-[10px] font-bold text-brand uppercase tracking-widest hover:underline">+ Add Split</button>
+                        </div>
+                        ${splitHtml}
+                    </div>
+                    ${navButtons}
+                </div>
+            `;
+        }
+
+        function navigateImport(dir) { currentImportIdx += dir; renderImportView(); }
+        function addImportSplit(idx) { pendingImports[idx].splits.push({ id: Date.now(), account_id: '', amount: 0 }); renderImportView(); }
+        function removeImportSplit(idx, sIdx) { pendingImports[idx].splits.splice(sIdx, 1); renderImportView(); }
+        function updateImportSplit(idx, sIdx, field, val) { pendingImports[idx].splits[sIdx][field] = field === 'amount' ? parseFloat(val)||0 : val; }
+
+        function skipImport(idx) { 
+            pendingImports.splice(idx, 1); 
+            if(currentImportIdx >= pendingImports.length) currentImportIdx = Math.max(0, pendingImports.length - 1);
+            renderImportView(); 
+        }
+
+        async function saveImport(idx) {
+            const item = pendingImports[idx];
+            const bankId = document.getElementById('master-account').value;
+            
+            let splitTotal = 0;
+            for(let s of item.splits) {
+                if(!s.account_id || s.amount <= 0) return alert("All splits must have an account and valid amount.");
+                splitTotal += s.amount;
+            }
+            if(Math.abs(splitTotal - item.total) > 0.01) return alert(`Splits total (₹${splitTotal}) must match transaction amount (₹${item.total}).`);
+
+            const { data: v, error: vErr } = await dbClient.from('vouchers').insert({ user_id: currentUser.id, date: item.date, type: item.type, narration: item.narration }).select().single();
+            if (vErr) return alert(vErr.message);
+
+            let entries = [{ voucher_id: v.id, account_id: bankId, amount: item.total, type: item.type === 'Payment' ? 'Cr' : 'Dr' }];
+            item.splits.forEach(s => entries.push({ voucher_id: v.id, account_id: s.account_id, amount: s.amount, type: item.type === 'Payment' ? 'Dr' : 'Cr' }));
+            
+            await dbClient.from('voucher_entries').insert(entries);
+            skipImport(idx); 
         }
 
         // ================= REPORTS & CHARTS MODULE =================
@@ -884,7 +1106,6 @@ splitOptions.sort((a, b) => a.name.localeCompare(b.name));
             const { data: entries } = await dbClient.from('voucher_entries').select('*').eq('voucher_id', id);
             if(!voucher || !entries) return;
 
-            // Determine which was the "Master" and which were the "Splits"
             let masterType = voucher.type === 'Payment' || voucher.type === 'Contra' ? 'Cr' : 'Dr';
             let splitType = voucher.type === 'Payment' || voucher.type === 'Contra' ? 'Dr' : 'Cr';
 
@@ -893,20 +1114,16 @@ splitOptions.sort((a, b) => a.name.localeCompare(b.name));
 
             if(!masterEntry || splitEntries.length === 0) return alert("Cannot automatically edit this legacy structure.");
 
-            // Remove old entry
             await dbClient.from('vouchers').delete().eq('id', id);
 
-            // Navigate to form and populate
             nav('entry');
             setTimeout(() => {
                 switchEntryType(voucher.type);
                 document.getElementById('entry-date').value = voucher.date;
                 document.getElementById('entry-narration').value = voucher.narration;
                 
-                // Set Master
                 populateEntryDropdowns(masterEntry.account_id);
                 
-                // Set Splits
                 splitLines = splitEntries.map(se => ({
                     id: Date.now() + Math.random(),
                     account: se.account_id,
