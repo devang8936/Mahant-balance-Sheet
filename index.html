@@ -834,16 +834,17 @@ async function saveImport(idx) {
 }
 
         // ================= REPORTS & CHARTS MODULE =================
+        // ================= REPORTS & CHARTS MODULE =================
         async function renderReports() {
             const content = document.getElementById('content-area');
             content.innerHTML = '<div class="flex justify-center mt-20"><div class="loader"></div></div>';
 
-            const { data: entries } = await dbClient.from('voucher_entries').select('*');
-            const { data: vouchers } = await dbClient.from('vouchers').select('id, date, narration, type').order('date', { ascending: false }); 
+            // Increased limits to prevent truncation on large imports
+            const { data: entries } = await dbClient.from('voucher_entries').select('*').limit(20000);
+            const { data: vouchers } = await dbClient.from('vouchers').select('id, date, narration, type').order('date', { ascending: false }).limit(10000); 
 
             if (!entries || !vouchers) return content.innerHTML = '<div class="text-center mt-10 text-gray-400">No data found</div>';
 
-            // Cache for Chart Filtering
             cachedEntries = entries;
             cachedVouchers = vouchers;
             cachedVoucherMap = {};
@@ -851,8 +852,8 @@ async function saveImport(idx) {
 
             let tInc = 0, tExp = 0;
             entries.forEach(e => {
-                const acc = userAccounts.find(a => a.id === e.account_id); 
-                const group = accountGroups.find(g => g?.id === acc?.group_id); 
+                const acc = userAccounts.find(a => a.id == e.account_id); 
+                const group = accountGroups.find(g => g?.id == acc?.group_id); 
                 if (group) {
                     const amt = parseFloat(e.amount);
                     if (group.nature === 'Income') e.type === 'Cr' ? tInc += amt : tInc -= amt;
@@ -860,7 +861,6 @@ async function saveImport(idx) {
                 }
             });
 
-            // Prepare Collapsible Month HTML
             const recentVouchers = vouchers.slice(0, 100); 
             let monthsData = {};
             recentVouchers.forEach(v => {
@@ -881,29 +881,33 @@ async function saveImport(idx) {
                     <div class="flex flex-col">`;
                 
                 vList.forEach(v => {
-                    const vEnt = entries.filter(e => e.voucher_id === v.id);
-                    const amt = vEnt.length ? Math.max(...vEnt.map(e => e.amount)) : 0;
+                    const vEnt = entries.filter(e => e.voucher_id == v.id);
+                    const amt = vEnt.length ? Math.max(...vEnt.map(e => parseFloat(e.amount))) : 0;
                     
-                    let desc = v.narration || 'Transaction'; 
+                    let title = 'Transaction'; 
                     let amtColor = v.type === 'Receipt' ? 'text-green-600' : v.type === 'Payment' ? 'text-red-600' : 'text-gray-900';
 
+                    // Find corresponding account to display as primary title
                     if(vEnt.length === 2) {
-                        const drEnt = vEnt.find(e => e.type === 'Dr'); const crEnt = vEnt.find(e => e.type === 'Cr');
-                        const drAcc = userAccounts.find(a => a.id === drEnt?.account_id); const crAcc = userAccounts.find(a => a.id === crEnt?.account_id);
+                        const drEnt = vEnt.find(e => e.type === 'Dr'); 
+                        const crEnt = vEnt.find(e => e.type === 'Cr');
+                        const drAcc = userAccounts.find(a => a.id == drEnt?.account_id); 
+                        const crAcc = userAccounts.find(a => a.id == crEnt?.account_id);
                         if(drAcc && crAcc) {
-                            if(v.type === 'Payment') { desc = `Paid <b>${drAcc.name}</b>`; }
-                            else if(v.type === 'Receipt') { desc = `Received <b>${crAcc.name}</b>`; }
-                            else { desc = `Transfer <b>${drAcc.name}</b>`; }
+                            title = v.type === 'Payment' ? drAcc.name : v.type === 'Receipt' ? crAcc.name : drAcc.name;
                         }
                     } else if (vEnt.length > 2) {
-                        desc = `<b>Split Transaction</b> (${vEnt.length - 1} items)`;
+                        title = `Split Transaction (${vEnt.length - 1} items)`;
                     }
+
+                    // Fallback to narration if account logic somehow failed
+                    if (title === 'Transaction' && v.narration) title = v.narration;
 
                     txnHtml += `
                         <div class="px-3 py-3 flex justify-between items-center border-b border-gray-100 last:border-0 hover:bg-gray-50">
                             <div class="min-w-0 pr-2">
-                                <div class="text-sm text-gray-800 truncate leading-tight">${desc}</div>
-                                <div class="text-[10px] text-gray-400 mt-1 font-medium">${formatDate(v.date)}</div>
+                                <div class="font-semibold text-gray-900 text-sm truncate leading-tight">${title}</div>
+                                <div class="text-[10px] text-gray-400 mt-1 font-medium truncate">${v.narration && v.narration !== title ? v.narration + ' • ' : ''}${formatDate(v.date)}</div>
                             </div>
                             <div class="flex flex-col items-end gap-1.5 shrink-0">
                                 <div class="flex items-center gap-2">
@@ -1112,29 +1116,33 @@ async function saveImport(idx) {
             const content = document.getElementById('content-area');
             content.innerHTML = '<div class="flex justify-center mt-20"><div class="loader"></div></div>';
             
-            const acc = userAccounts.find(a => a.id === accId);
-            const group = accountGroups.find(g => g.id === acc.group_id);
-            const { data: myEntries } = await dbClient.from('voucher_entries').select('*').eq('account_id', accId);
+            const acc = userAccounts.find(a => a.id == accId);
+            const group = accountGroups.find(g => g.id == acc.group_id);
+            const { data: myEntries } = await dbClient.from('voucher_entries').select('*').eq('account_id', accId).limit(5000);
             if(!myEntries || myEntries.length === 0) return content.innerHTML = '<div class="p-10 text-center text-gray-400 text-sm">No transactions found.</div>';
 
-            const vIds = myEntries.map(e => e.voucher_id);
-            const { data: relatedEntries } = await dbClient.from('voucher_entries').select('*').in('voucher_id', vIds);
-            const { data: allVouchers } = await dbClient.from('vouchers').select('*').in('id', vIds);
+            // Flat local fetches prevent the .in() URL limit truncation
+            const { data: allVouchers } = await dbClient.from('vouchers').select('*').limit(10000);
+            const { data: relatedEntries } = await dbClient.from('voucher_entries').select('*').limit(20000);
             
             let ledgerData = myEntries.map(e => {
-                const v = allVouchers.find(x => x.id === e.voucher_id);
-                const otherEntries = relatedEntries.filter(r => r.voucher_id === e.voucher_id && r.account_id !== accId);
-                let description = v.narration || 'Transaction';
+                const v = allVouchers.find(x => x.id == e.voucher_id);
+                if (!v) return null;
+
+                const otherEntries = relatedEntries.filter(r => r.voucher_id == e.voucher_id && r.account_id != accId);
                 
+                let title = 'Transaction';
                 if (otherEntries.length === 1) {
-                    const otherAcc = userAccounts.find(u => u.id === otherEntries[0].account_id);
-                    if (otherAcc) description = otherAcc.name; 
+                    const otherAcc = userAccounts.find(u => u.id == otherEntries[0].account_id);
+                    if (otherAcc) title = otherAcc.name; 
                 } else if (otherEntries.length > 1) {
-                    description = `Split Transaction (${otherEntries.length} accs)`;
+                    title = `Split Transaction (${otherEntries.length} items)`;
                 }
+
+                if (title === 'Transaction' && v.narration) title = v.narration;
                 
-                return { ...e, date: v.date, narration: v.narration, displayTitle: description, vId: v.id };
-            }).sort((a, b) => new Date(a.date) - new Date(b.date));
+                return { ...e, date: v.date, narration: v.narration, displayTitle: title, vId: v.id };
+            }).filter(Boolean).sort((a, b) => new Date(a.date) - new Date(b.date));
 
             let runningBal = parseFloat(acc.opening_balance) || 0;
             const rows = ledgerData.map(d => {
@@ -1149,7 +1157,7 @@ async function saveImport(idx) {
                 <div class="px-3 py-3 border-b border-gray-100 flex justify-between items-center text-sm hover:bg-gray-50 transition-colors last:border-0">
                     <div class="w-2/3 pr-2 min-w-0">
                         <div class="font-semibold text-gray-900 text-sm truncate leading-tight">${d.displayTitle}</div>
-                        <div class="text-[10px] text-gray-400 mt-0.5 truncate font-medium">${d.narration ? d.narration + ' • ' : ''}${formatDate(d.date)}</div>
+                        <div class="text-[10px] text-gray-400 mt-0.5 truncate font-medium">${d.narration && d.narration !== d.displayTitle ? d.narration + ' • ' : ''}${formatDate(d.date)}</div>
                     </div>
                     <div class="text-right flex flex-col items-end gap-1.5 shrink-0">
                         <div class="flex items-center gap-2">
