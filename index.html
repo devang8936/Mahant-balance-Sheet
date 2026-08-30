@@ -103,26 +103,26 @@
         </div>
     </div>
 
+    <!-- Modals -->
     <div id="modal-import-config" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white w-full sm:w-96 rounded-xl p-6 shadow-2xl sheet-enter border border-gray-200">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-gray-900">Import Checklist</h3>
-            <button onclick="document.getElementById('modal-import-config').classList.add('hidden')" class="text-gray-400 hover:text-red-500 transition-colors">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-        </div>
-        <div class="space-y-4">
-            <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
-                <p class="text-xs text-gray-700 font-medium leading-relaxed">
-                    <strong>Is your statement password-protected?</strong><br><br>
-                    Browsers cannot read encrypted bank files. Before importing, please open the statement in Excel, click <strong>Save As</strong>, and save it as an unprotected <strong>CSV</strong> or Excel file.
-                </p>
+        <div class="bg-white w-full sm:w-96 rounded-xl p-6 shadow-2xl sheet-enter border border-gray-200">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-900">Import Checklist</h3>
+                <button onclick="document.getElementById('modal-import-config').classList.add('hidden')" class="text-gray-400 hover:text-red-500 transition-colors">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
             </div>
-            <button onclick="document.getElementById('import-file').click()" class="w-full py-3 bg-brand text-white font-bold text-xs rounded-md uppercase tracking-widest shadow-md active:bg-[#4a2626] transition-colors">I Understand, Select File</button>
+            <div class="space-y-4">
+                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                    <p class="text-xs text-gray-700 font-medium leading-relaxed">
+                        <strong>Is your statement password-protected?</strong><br><br>
+                        Browsers cannot read encrypted bank files. Before importing, please open the statement in Excel, click <strong>Save As</strong>, and save it as an unprotected <strong>CSV</strong> or Excel file.
+                    </p>
+                </div>
+                <button onclick="document.getElementById('import-file').click()" class="w-full py-3 bg-brand text-white font-bold text-xs rounded-md uppercase tracking-widest shadow-md active:bg-[#4a2626] transition-colors">I Understand, Select File</button>
+            </div>
         </div>
     </div>
-</div>
-</div>
 
     <div id="modal-account" class="hidden fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4 sm:p-0">
         <div onclick="event.stopPropagation()" class="bg-white w-full sm:w-96 rounded-xl p-6 pb-safe shadow-2xl sheet-enter border border-gray-200">
@@ -178,6 +178,7 @@
         </div>
     </div>
 
+    <!-- Import Modal (Dual View) -->
     <div id="modal-import" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
             <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-xl">
@@ -218,7 +219,7 @@
             return new Date(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
         }
         function getAccountName(id) {
-            const acc = userAccounts.find(a => a.id === id);
+            const acc = userAccounts.find(a => a.id == id);
             return acc ? acc.name : '';
         }
 
@@ -336,7 +337,7 @@
                         <button id="btn-save" onclick="submitTransaction()" class="w-full bg-brand text-white p-3.5 rounded-md font-bold text-xs uppercase tracking-widest shadow-flat mt-2 active:bg-[#4a2626] transition-colors">Save Transaction</button>
                         
                         <input type="file" id="import-file" accept=".csv, .xlsx, .xls" class="hidden" onchange="handleImport(event)">
-<button onclick="document.getElementById('import-file').click()" class="w-full bg-white text-brand border border-brand p-3.5 rounded-md font-bold text-xs uppercase tracking-widest mt-3 hover:bg-gray-50 transition-colors">Import Excel Statement</button>
+                        <button onclick="document.getElementById('modal-import-config').classList.remove('hidden')" class="w-full bg-white text-brand border border-brand p-3.5 rounded-md font-bold text-xs uppercase tracking-widest mt-3 hover:bg-gray-50 transition-colors">Import Excel Statement</button>
                     </div>
                 </div>`;
             document.getElementById('content-area').innerHTML = html;
@@ -566,147 +567,127 @@
         }
 
         // ================= IMPORT STATEMENT LOGIC =================
-        let currentImportBuffer = null;
-
-function handleImport(e) {
-    const bankId = document.getElementById('master-account').value;
-    if (!bankId) {
-        document.getElementById('modal-import-config').classList.add('hidden');
-        e.target.value = '';
-        return alert("Select a PAID FROM/RECEIVED IN bank account first.");
-    }
-    
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-        try {
-            const wb = XLSX.read(new Uint8Array(evt.target.result), {type: 'array'});
-            const rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, raw: false});
-            
-            let headerIdx = -1;
-            for(let i=0; i < Math.min(rawData.length, 30); i++) {
-                if(!rawData[i]) continue;
-                const rowStr = rawData[i].map(c => (c||'').toString().toLowerCase().trim()).join(' ');
-                if(rowStr.includes('date') && (rowStr.includes('details') || rowStr.includes('description'))) { headerIdx = i; break; }
+        function handleImport(e) {
+            const bankId = document.getElementById('master-account').value;
+            if (!bankId) {
+                document.getElementById('modal-import-config').classList.add('hidden');
+                e.target.value = '';
+                return alert("Select a PAID FROM/RECEIVED IN bank account first.");
             }
             
-            if(headerIdx === -1) throw new Error("Could not find standard bank headers ('Date', 'Details').");
+            const file = e.target.files[0];
+            if (!file) return;
             
-            const headers = rawData[headerIdx].map(h => (h||'').toString().toLowerCase().trim());
-            const dateCol = headers.findIndex(h => h === 'date' || h.includes('txn date'));
-            const descCol = headers.findIndex(h => h === 'details' || h.includes('description') || h.includes('narration'));
-            const drCol = headers.findIndex(h => h === 'debit');
-            const crCol = headers.findIndex(h => h === 'credit');
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    const wb = XLSX.read(new Uint8Array(evt.target.result), {type: 'array'});
+                    // defval: "" prevents missing-column shifting bugs
+                    const rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, raw: false, defval: ""});
+                    
+                    let headerIdx = -1;
+                    for(let i=0; i < Math.min(rawData.length, 30); i++) {
+                        if(!rawData[i]) continue;
+                        const rowStr = rawData[i].map(c => (c||'').toString().toLowerCase().trim()).join(' ');
+                        if(rowStr.includes('date') && (rowStr.includes('details') || rowStr.includes('description'))) { headerIdx = i; break; }
+                    }
+                    
+                    if(headerIdx === -1) throw new Error("Could not find standard bank headers ('Date', 'Details').");
+                    
+                    const headers = rawData[headerIdx].map(h => (h||'').toString().toLowerCase().trim());
+                    const dateCol = headers.findIndex(h => h === 'date' || h.includes('txn date') || h.includes('value date'));
+                    const descCol = headers.findIndex(h => h === 'details' || h.includes('description') || h.includes('narration') || h.includes('particulars'));
+                    const drCol = headers.findIndex(h => h.includes('debit') || h.includes('withdrawal') || h === 'dr');
+                    const crCol = headers.findIndex(h => h.includes('credit') || h.includes('deposit') || h === 'cr');
 
-            pendingImports = [];
-            for(let i = headerIdx + 1; i < rawData.length; i++) {
-                const row = rawData[i];
-                if(!row || row.length === 0 || !row[dateCol]) continue; 
-                
-                const debit = parseFloat((row[drCol] || '').toString().replace(/,/g, '')) || 0;
-                const credit = parseFloat((row[crCol] || '').toString().replace(/,/g, '')) || 0;
-                if(debit === 0 && credit === 0) continue;
+                    if(drCol === -1 && crCol === -1) throw new Error("Could not find 'Debit' and 'Credit' columns.");
 
-                let dateRaw = row[dateCol];
-                let cleanDate = new Date().toISOString().split('T')[0];
-                
-                if (dateRaw) {
-                    if (typeof dateRaw === 'number') {
-                        // Excel serial format
-                        const dateInfo = new Date(Math.round((dateRaw - 25569) * 86400 * 1000));
-                        cleanDate = dateInfo.toISOString().split('T')[0];
-                    } else {
-                        // Explicit string parsing for DD/MM/YYYY or DD-MMM-YYYY
-                        const dateStr = String(dateRaw).trim();
-                        const dmY = dateStr.match(/^(\d{1,2})[-/ .](\d{1,2}|[a-zA-Z]{3})[-/ .](\d{2,4})/);
+                    pendingImports = [];
+                    for(let i = headerIdx + 1; i < rawData.length; i++) {
+                        const row = rawData[i];
+                        if(!row || row.length === 0 || !row[dateCol]) continue; 
                         
-                        if (dmY) {
-                            let day = dmY[1].padStart(2, '0');
-                            let monthRaw = dmY[2];
-                            let month = '01';
-                            
-                            if (isNaN(monthRaw)) {
-                                const mNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
-                                const mIdx = mNames.findIndex(m => m === monthRaw.toLowerCase().substring(0,3));
-                                if(mIdx >= 0) month = String(mIdx + 1).padStart(2, '0');
+                        // Parse numbers safely avoiding formatting commas
+                        const drStr = String(row[drCol] || '').replace(/,/g, '');
+                        const crStr = String(row[crCol] || '').replace(/,/g, '');
+                        const debit = parseFloat(drStr) || 0;
+                        const credit = parseFloat(crStr) || 0;
+
+                        if(debit === 0 && credit === 0) continue;
+
+                        let dateRaw = row[dateCol];
+                        let cleanDate = new Date().toISOString().split('T')[0];
+                        
+                        if (dateRaw) {
+                            if (typeof dateRaw === 'number') {
+                                const dateInfo = new Date(Math.round((dateRaw - 25569) * 86400 * 1000));
+                                cleanDate = dateInfo.toISOString().split('T')[0];
                             } else {
-                                month = monthRaw.padStart(2, '0');
+                                let dateStr = String(dateRaw).trim();
+                                
+                                if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(dateStr)) {
+                                    const d = new Date(dateStr);
+                                    if(!isNaN(d.getTime())) cleanDate = d.toISOString().split('T')[0];
+                                } else {
+                                    const dmY = dateStr.match(/^(\d{1,2})[-/ .](\d{1,2}|[a-zA-Z]{3})[-/ .](\d{2,4})/);
+                                    if (dmY) {
+                                        let day = dmY[1].padStart(2, '0');
+                                        let monthRaw = dmY[2];
+                                        let month = '01';
+                                        
+                                        if (isNaN(monthRaw)) {
+                                            const mNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+                                            const mIdx = mNames.findIndex(m => m === monthRaw.toLowerCase().substring(0,3));
+                                            if(mIdx >= 0) month = String(mIdx + 1).padStart(2, '0');
+                                        } else {
+                                            month = monthRaw.padStart(2, '0');
+                                        }
+                                        
+                                        let year = dmY[3];
+                                        if (year.length === 2) year = '20' + year;
+                                        
+                                        if (!isNaN(monthRaw) && parseInt(month) > 12 && parseInt(day) <= 12) {
+                                            cleanDate = `${year}-${day}-${month}`;
+                                        } else {
+                                            cleanDate = `${year}-${month}-${day}`;
+                                        }
+                                    } else {
+                                        const d = new Date(dateStr);
+                                        if(!isNaN(d.getTime())) cleanDate = d.toISOString().split('T')[0];
+                                    }
+                                }
                             }
-                            
-                            let year = dmY[3];
-                            if (year.length === 2) year = '20' + year;
-                            
-                            // Prevent month > 12 errors if format was accidentally MM/DD/YYYY
-                            if (!isNaN(monthRaw) && parseInt(month) > 12 && parseInt(day) <= 12) {
-                                cleanDate = `${year}-${day}-${month}`;
-                            } else {
-                                cleanDate = `${year}-${month}-${day}`;
-                            }
-                        } else {
-                            // Fallback for native Date parsing
-                            const d = new Date(dateStr);
-                            if(!isNaN(d.getTime())) cleanDate = d.toISOString().split('T')[0];
                         }
+
+                        const amount = debit > 0 ? debit : credit;
+                        pendingImports.push({ 
+                            id: Date.now() + Math.random(), 
+                            date: cleanDate, 
+                            narration: row[descCol] || 'Imported', 
+                            custom_narration: "",
+                            total: amount, 
+                            type: debit > 0 ? 'Payment' : 'Receipt',
+                            splits: [{ id: Date.now(), account_id: '', amount: amount }]
+                        });
+                    }
+                    
+                    document.getElementById('modal-import-config').classList.add('hidden');
+                    document.getElementById('modal-import').classList.remove('hidden');
+                    currentImportIdx = 0;
+                    setImportView('single');
+                    
+                } catch (err) {
+                    if (err.message.toLowerCase().includes('password') || err.message.toLowerCase().includes('encrypt')) {
+                        alert("This file is encrypted. Please open it in Excel, select 'Save As -> CSV', and upload the unprotected copy.");
+                    } else {
+                        alert("Failed to read file: " + err.message);
                     }
                 }
-
-                const amount = debit > 0 ? debit : credit;
-                pendingImports.push({ 
-                    id: Date.now() + Math.random(), 
-                    date: cleanDate, 
-                    narration: row[descCol] || 'Imported', 
-                    total: amount, 
-                    type: debit > 0 ? 'Payment' : 'Receipt',
-                    splits: [{ id: Date.now(), account_id: '', amount: amount }]
-                });
-            }
-            
-            document.getElementById('modal-import-config').classList.add('hidden');
-            document.getElementById('modal-import').classList.remove('hidden');
-            currentImportIdx = 0;
-            setImportView('single');
-            
-        } catch (err) {
-            if (err.message.toLowerCase().includes('password') || err.message.toLowerCase().includes('encrypt')) {
-                alert("This file is encrypted. Please open it in Excel, select 'Save As -> CSV', and upload the unprotected copy.");
-            } else {
-                alert("Failed to read file: " + err.message);
-            }
+                e.target.value = ''; 
+            };
+            reader.readAsArrayBuffer(file);
         }
-        e.target.value = ''; 
-    };
-    reader.readAsArrayBuffer(file);
-}
 
-async function saveImport(idx) {
-    const item = pendingImports[idx];
-    const bankId = document.getElementById('master-account').value;
-    
-    let splitTotal = 0;
-    for(let s of item.splits) {
-        if(!s.account_id || s.amount <= 0) return alert("All splits must have an account and valid amount.");
-        splitTotal += s.amount;
-    }
-    if(Math.abs(splitTotal - item.total) > 0.01) return alert(`Splits total (₹${splitTotal}) must match transaction amount (₹${item.total}).`);
-
-    // Sends an empty string to the database instead of the narration
-    const { data: v, error: vErr } = await dbClient.from('vouchers').insert({ 
-        user_id: currentUser.id, 
-        date: item.date, 
-        type: item.type, 
-        narration: "" 
-    }).select().single();
-    
-    if (vErr) return alert(vErr.message);
-
-    let entries = [{ voucher_id: v.id, account_id: bankId, amount: item.total, type: item.type === 'Payment' ? 'Cr' : 'Dr' }];
-    item.splits.forEach(s => entries.push({ voucher_id: v.id, account_id: s.account_id, amount: s.amount, type: item.type === 'Payment' ? 'Dr' : 'Cr' }));
-    
-    await dbClient.from('voucher_entries').insert(entries);
-    skipImport(idx); 
-}
         function setImportView(mode) { 
             importViewMode = mode; 
             document.getElementById('btn-view-single').className = mode === 'single' ? "px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-md bg-brand text-white transition-colors" : "px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-md bg-white border border-gray-200 text-gray-600 transition-colors";
@@ -730,72 +711,71 @@ async function saveImport(idx) {
         }
 
         function generateImportCard(item, idx, isSingle) {
-    let allOptionsArray = [...userAccounts].sort((a, b) => a.name.localeCompare(b.name));
-    
-    let splitHtml = item.splits.map((split, sIdx) => `
-        <div class="flex gap-2 items-center mt-2">
-            <select onchange="updateImportSplit(${idx}, ${sIdx}, 'account_id', this.value)" class="flex-1 p-2.5 text-sm border border-gray-300 rounded-md outline-none focus:border-brand font-semibold text-gray-800">
-                <option value="">Select Account...</option>
-                ${allOptionsArray.map(a => `<option value="${a.id}" ${split.account_id === a.id ? 'selected' : ''}>${a.name}</option>`).join('')}
-            </select>
-            <div class="relative w-1/3">
-                <span class="absolute left-3 top-2.5 text-gray-400 font-bold text-sm">₹</span>
-                <input type="number" onchange="updateImportSplit(${idx}, ${sIdx}, 'amount', this.value)" value="${split.amount}" class="w-full pl-7 p-2.5 text-sm font-inter font-bold border border-gray-300 rounded-md outline-none focus:border-brand">
-            </div>
-            ${item.splits.length > 1 ? `<button onclick="removeImportSplit(${idx}, ${sIdx})" class="text-red-500 font-bold text-xs p-2 hover:bg-red-50 rounded">X</button>` : ''}
-        </div>
-    `).join('');
-
-    const navButtons = isSingle ? `
-        <div class="flex justify-between mt-6 gap-3">
-            <button onclick="skipImport(${idx})" class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs rounded-md uppercase tracking-widest transition-colors">Skip</button>
-            <button onclick="saveImport(${idx})" class="flex-1 py-3 bg-brand active:bg-[#4a2626] text-white font-bold text-xs rounded-md uppercase tracking-widest shadow-md transition-colors">Save & Next</button>
-        </div>
-        <div class="flex justify-center items-center gap-6 mt-6 border-t border-gray-100 pt-4">
-            <button onclick="navigateImport(-1)" class="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-brand disabled:opacity-30" ${idx === 0 ? 'disabled' : ''}>← Previous</button>
-            <span class="text-[10px] font-bold bg-gray-100 px-3 py-1 rounded-full text-gray-500">${idx + 1} of ${pendingImports.length}</span>
-            <button onclick="navigateImport(1)" class="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-brand disabled:opacity-30" ${idx === pendingImports.length - 1 ? 'disabled' : ''}>Next →</button>
-        </div>
-    ` : `
-        <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">
-            <button onclick="skipImport(${idx})" class="w-1/4 py-2.5 bg-gray-200 text-gray-700 font-bold text-[10px] rounded uppercase tracking-widest hover:bg-gray-300 transition-colors">Skip</button>
-            <button onclick="saveImport(${idx})" class="w-3/4 py-2.5 bg-brand text-white font-bold text-[10px] rounded uppercase tracking-widest shadow-md active:bg-[#4a2626] transition-colors">Save Transaction</button>
-        </div>
-    `;
-
-    return `
-        <div class="bg-white border border-gray-200 p-5 rounded-xl shadow-sm">
-            <div class="flex justify-between items-start mb-3">
-                <div class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded uppercase tracking-widest">${item.date}</div>
-                <div class="text-xl font-bold font-inter ${item.type === 'Payment' ? 'text-red-600' : 'text-green-600'}">${item.type === 'Payment' ? '-' : '+'}₹${item.total.toLocaleString('en-IN')}</div>
-            </div>
+            let allOptionsArray = [...userAccounts].sort((a, b) => a.name.localeCompare(b.name));
             
-            <!-- Raw Bank Detail: Shown but NOT saved -->
-            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Bank Statement Detail</div>
-            <div class="text-sm font-medium text-gray-800 bg-blue-50/50 p-3 rounded-lg border border-blue-100 mb-4 leading-relaxed">${item.narration}</div>
-            
-            <!-- Custom Narration: Typed by you, SAVED to Database -->
-            <div class="mb-5">
-                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">My Narration (Optional)</label>
-                <input type="text" id="custom-narration-${idx}" placeholder="Type a clean note..." class="w-full mt-1 p-2 bg-gray-50 border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors text-gray-800">
-            </div>
-            
-            <div>
-                <div class="flex justify-between items-center mb-2">
-                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Offset Account</label>
-                    <button onclick="addImportSplit(${idx})" class="text-[10px] font-bold text-brand uppercase tracking-widest hover:underline">+ Add Split</button>
+            let splitHtml = item.splits.map((split, sIdx) => `
+                <div class="flex gap-2 items-center mt-2">
+                    <select onchange="updateImportSplit(${idx}, ${sIdx}, 'account_id', this.value)" class="flex-1 p-2.5 text-sm border border-gray-300 rounded-md outline-none focus:border-brand font-semibold text-gray-800">
+                        <option value="">Select Account...</option>
+                        ${allOptionsArray.map(a => `<option value="${a.id}" ${split.account_id == a.id ? 'selected' : ''}>${a.name}</option>`).join('')}
+                    </select>
+                    <div class="relative w-1/3">
+                        <span class="absolute left-3 top-2.5 text-gray-400 font-bold text-sm">₹</span>
+                        <input type="number" onchange="updateImportSplit(${idx}, ${sIdx}, 'amount', this.value)" value="${split.amount}" class="w-full pl-7 p-2.5 text-sm font-inter font-bold border border-gray-300 rounded-md outline-none focus:border-brand">
+                    </div>
+                    ${item.splits.length > 1 ? `<button onclick="removeImportSplit(${idx}, ${sIdx})" class="text-red-500 font-bold text-xs p-2 hover:bg-red-50 rounded">X</button>` : ''}
                 </div>
-                ${splitHtml}
-            </div>
-            ${navButtons}
-        </div>
-    `;
-}
+            `).join('');
+
+            const navButtons = isSingle ? `
+                <div class="flex justify-between mt-6 gap-3">
+                    <button onclick="skipImport(${idx})" class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs rounded-md uppercase tracking-widest transition-colors">Skip</button>
+                    <button onclick="saveImport(${idx})" class="flex-1 py-3 bg-brand active:bg-[#4a2626] text-white font-bold text-xs rounded-md uppercase tracking-widest shadow-md transition-colors">Save & Next</button>
+                </div>
+                <div class="flex justify-center items-center gap-6 mt-6 border-t border-gray-100 pt-4">
+                    <button onclick="navigateImport(-1)" class="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-brand disabled:opacity-30" ${idx === 0 ? 'disabled' : ''}>← Previous</button>
+                    <span class="text-[10px] font-bold bg-gray-100 px-3 py-1 rounded-full text-gray-500">${idx + 1} of ${pendingImports.length}</span>
+                    <button onclick="navigateImport(1)" class="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-brand disabled:opacity-30" ${idx === pendingImports.length - 1 ? 'disabled' : ''}>Next →</button>
+                </div>
+            ` : `
+                <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+                    <button onclick="skipImport(${idx})" class="w-1/4 py-2.5 bg-gray-200 text-gray-700 font-bold text-[10px] rounded uppercase tracking-widest hover:bg-gray-300 transition-colors">Skip</button>
+                    <button onclick="saveImport(${idx})" class="w-3/4 py-2.5 bg-brand text-white font-bold text-[10px] rounded uppercase tracking-widest shadow-md active:bg-[#4a2626] transition-colors">Save Transaction</button>
+                </div>
+            `;
+
+            return `
+                <div class="bg-white border border-gray-200 p-5 rounded-xl shadow-sm">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded uppercase tracking-widest">${item.date}</div>
+                        <div class="text-xl font-bold font-inter ${item.type === 'Payment' ? 'text-red-600' : 'text-green-600'}">${item.type === 'Payment' ? '-' : '+'}₹${item.total.toLocaleString('en-IN')}</div>
+                    </div>
+                    
+                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Bank Statement Detail</div>
+                    <div class="text-sm font-medium text-gray-800 bg-blue-50/50 p-3 rounded-lg border border-blue-100 mb-4 leading-relaxed">${item.narration}</div>
+                    
+                    <div class="mb-5">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">My Narration (Optional)</label>
+                        <input type="text" onchange="updateImportNarration(${idx}, this.value)" value="${item.custom_narration}" placeholder="Type a clean note..." class="w-full mt-1 p-2 bg-gray-50 border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors text-gray-800">
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Offset Account</label>
+                            <button onclick="addImportSplit(${idx})" class="text-[10px] font-bold text-brand uppercase tracking-widest hover:underline">+ Add Split</button>
+                        </div>
+                        ${splitHtml}
+                    </div>
+                    ${navButtons}
+                </div>
+            `;
+        }
 
         function navigateImport(dir) { currentImportIdx += dir; renderImportView(); }
         function addImportSplit(idx) { pendingImports[idx].splits.push({ id: Date.now(), account_id: '', amount: 0 }); renderImportView(); }
         function removeImportSplit(idx, sIdx) { pendingImports[idx].splits.splice(sIdx, 1); renderImportView(); }
         function updateImportSplit(idx, sIdx, field, val) { pendingImports[idx].splits[sIdx][field] = field === 'amount' ? parseFloat(val)||0 : val; }
+        function updateImportNarration(idx, val) { pendingImports[idx].custom_narration = val; }
 
         function skipImport(idx) { 
             pendingImports.splice(idx, 1); 
@@ -804,34 +784,33 @@ async function saveImport(idx) {
         }
 
         async function saveImport(idx) {
-    const item = pendingImports[idx];
-    const bankId = document.getElementById('master-account').value;
-    
-    // Grab the clean narration typed by the user, totally ignoring the messy bank detail
-    const customNarration = document.getElementById(`custom-narration-${idx}`).value.trim();
-    
-    let splitTotal = 0;
-    for(let s of item.splits) {
-        if(!s.account_id || s.amount <= 0) return alert("All splits must have an account and valid amount.");
-        splitTotal += s.amount;
-    }
-    if(Math.abs(splitTotal - item.total) > 0.01) return alert(`Splits total (₹${splitTotal}) must match transaction amount (₹${item.total}).`);
+            const item = pendingImports[idx];
+            const bankId = document.getElementById('master-account').value;
+            
+            const customNarration = (item.custom_narration || "").trim();
+            
+            let splitTotal = 0;
+            for(let s of item.splits) {
+                if(!s.account_id || s.amount <= 0) return alert("All splits must have an account and valid amount.");
+                splitTotal += s.amount;
+            }
+            if(Math.abs(splitTotal - item.total) > 0.01) return alert(`Splits total (₹${splitTotal}) must match transaction amount (₹${item.total}).`);
 
-    const { data: v, error: vErr } = await dbClient.from('vouchers').insert({ 
-        user_id: currentUser.id, 
-        date: item.date, 
-        type: item.type, 
-        narration: customNarration // Only saves your custom input (or leaves it blank)
-    }).select().single();
-    
-    if (vErr) return alert(vErr.message);
+            const { data: v, error: vErr } = await dbClient.from('vouchers').insert({ 
+                user_id: currentUser.id, 
+                date: item.date, 
+                type: item.type, 
+                narration: customNarration
+            }).select().single();
+            
+            if (vErr) return alert(vErr.message);
 
-    let entries = [{ voucher_id: v.id, account_id: bankId, amount: item.total, type: item.type === 'Payment' ? 'Cr' : 'Dr' }];
-    item.splits.forEach(s => entries.push({ voucher_id: v.id, account_id: s.account_id, amount: s.amount, type: item.type === 'Payment' ? 'Dr' : 'Cr' }));
-    
-    await dbClient.from('voucher_entries').insert(entries);
-    skipImport(idx); 
-}
+            let entries = [{ voucher_id: v.id, account_id: bankId, amount: item.total, type: item.type === 'Payment' ? 'Cr' : 'Dr' }];
+            item.splits.forEach(s => entries.push({ voucher_id: v.id, account_id: s.account_id, amount: s.amount, type: item.type === 'Payment' ? 'Dr' : 'Cr' }));
+            
+            await dbClient.from('voucher_entries').insert(entries);
+            skipImport(idx); 
+        }
 
         // ================= REPORTS & CHARTS MODULE =================
         // ================= REPORTS & CHARTS MODULE =================
@@ -839,11 +818,18 @@ async function saveImport(idx) {
             const content = document.getElementById('content-area');
             content.innerHTML = '<div class="flex justify-center mt-20"><div class="loader"></div></div>';
 
-            // Increased limits to prevent truncation on large imports
-            const { data: entries } = await dbClient.from('voucher_entries').select('*').limit(20000);
-            const { data: vouchers } = await dbClient.from('vouchers').select('id, date, narration, type').order('date', { ascending: false }).limit(10000); 
+            // Fetch the 1000 most recent vouchers directly
+            const { data: vouchers } = await dbClient.from('vouchers').select('id, date, narration, type').order('date', { ascending: false }).limit(1000); 
 
-            if (!entries || !vouchers) return content.innerHTML = '<div class="text-center mt-10 text-gray-400">No data found</div>';
+            if (!vouchers || vouchers.length === 0) return content.innerHTML = '<div class="text-center mt-10 text-gray-400">No data found</div>';
+
+            // Fetch related entries in safe chunks to bypass the 1,000 row limits
+            let entries = [];
+            for (let i = 0; i < vouchers.length; i += 100) {
+                const chunkIds = vouchers.slice(i, i + 100).map(v => v.id);
+                const { data: chunkEntries } = await dbClient.from('voucher_entries').select('*').in('voucher_id', chunkIds);
+                if (chunkEntries) entries.push(...chunkEntries);
+            }
 
             cachedEntries = entries;
             cachedVouchers = vouchers;
@@ -887,7 +873,6 @@ async function saveImport(idx) {
                     let title = 'Transaction'; 
                     let amtColor = v.type === 'Receipt' ? 'text-green-600' : v.type === 'Payment' ? 'text-red-600' : 'text-gray-900';
 
-                    // Find corresponding account to display as primary title
                     if(vEnt.length === 2) {
                         const drEnt = vEnt.find(e => e.type === 'Dr'); 
                         const crEnt = vEnt.find(e => e.type === 'Cr');
@@ -900,7 +885,6 @@ async function saveImport(idx) {
                         title = `Split Transaction (${vEnt.length - 1} items)`;
                     }
 
-                    // Fallback to narration if account logic somehow failed
                     if (title === 'Transaction' && v.narration) title = v.narration;
 
                     txnHtml += `
@@ -947,14 +931,18 @@ async function saveImport(idx) {
             renderChart('daily');
         }
 
+        // Keep your existing renderChart() function here untouched
+
+        // ================= ACCOUNTS MODULE =================
+
         function renderChart(filter) {
             let chartData = {};
             
             cachedEntries.forEach(e => {
                 const voucher = cachedVoucherMap[e.voucher_id]; 
                 if (!voucher) return;
-                const acc = userAccounts.find(a => a.id === e.account_id); 
-                const group = accountGroups.find(g => g?.id === acc?.group_id); 
+                const acc = userAccounts.find(a => a.id == e.account_id); 
+                const group = accountGroups.find(g => g?.id == acc?.group_id); 
                 if (!group) return;
                 const amt = parseFloat(e.amount);
 
@@ -1118,14 +1106,26 @@ async function saveImport(idx) {
             
             const acc = userAccounts.find(a => a.id == accId);
             const group = accountGroups.find(g => g.id == acc.group_id);
-            const { data: myEntries } = await dbClient.from('voucher_entries').select('*').eq('account_id', accId).limit(5000);
-            if(!myEntries || myEntries.length === 0) return content.innerHTML = '<div class="p-10 text-center text-gray-400 text-sm">No transactions found.</div>';
-
-            // Flat local fetches prevent the .in() URL limit truncation
-            const { data: allVouchers } = await dbClient.from('vouchers').select('*').limit(10000);
-            const { data: relatedEntries } = await dbClient.from('voucher_entries').select('*').limit(20000);
             
-            let ledgerData = myEntries.map(e => {
+            // Get entries specifically for this account
+            const { data: myEntriesRaw } = await dbClient.from('voucher_entries').select('*').eq('account_id', accId).limit(2000);
+            if(!myEntriesRaw || myEntriesRaw.length === 0) return content.innerHTML = '<div class="p-10 text-center text-gray-400 text-sm">No transactions found.</div>';
+
+            const vIds = [...new Set(myEntriesRaw.map(e => e.voucher_id))];
+            
+            let allVouchers = [];
+            let relatedEntries = [];
+            
+            // Fetch the offsetting entries and vouchers in safe chunks
+            for (let i = 0; i < vIds.length; i += 100) {
+                const chunkIds = vIds.slice(i, i + 100);
+                const { data: vChunk } = await dbClient.from('vouchers').select('*').in('id', chunkIds);
+                const { data: eChunk } = await dbClient.from('voucher_entries').select('*').in('voucher_id', chunkIds);
+                if (vChunk) allVouchers.push(...vChunk);
+                if (eChunk) relatedEntries.push(...eChunk);
+            }
+            
+            let ledgerData = myEntriesRaw.map(e => {
                 const v = allVouchers.find(x => x.id == e.voucher_id);
                 if (!v) return null;
 
