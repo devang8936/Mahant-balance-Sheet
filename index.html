@@ -730,58 +730,67 @@ async function saveImport(idx) {
         }
 
         function generateImportCard(item, idx, isSingle) {
-            let allOptionsArray = [...userAccounts].sort((a, b) => a.name.localeCompare(b.name));
+    let allOptionsArray = [...userAccounts].sort((a, b) => a.name.localeCompare(b.name));
+    
+    let splitHtml = item.splits.map((split, sIdx) => `
+        <div class="flex gap-2 items-center mt-2">
+            <select onchange="updateImportSplit(${idx}, ${sIdx}, 'account_id', this.value)" class="flex-1 p-2.5 text-sm border border-gray-300 rounded-md outline-none focus:border-brand font-semibold text-gray-800">
+                <option value="">Select Account...</option>
+                ${allOptionsArray.map(a => `<option value="${a.id}" ${split.account_id === a.id ? 'selected' : ''}>${a.name}</option>`).join('')}
+            </select>
+            <div class="relative w-1/3">
+                <span class="absolute left-3 top-2.5 text-gray-400 font-bold text-sm">₹</span>
+                <input type="number" onchange="updateImportSplit(${idx}, ${sIdx}, 'amount', this.value)" value="${split.amount}" class="w-full pl-7 p-2.5 text-sm font-inter font-bold border border-gray-300 rounded-md outline-none focus:border-brand">
+            </div>
+            ${item.splits.length > 1 ? `<button onclick="removeImportSplit(${idx}, ${sIdx})" class="text-red-500 font-bold text-xs p-2 hover:bg-red-50 rounded">X</button>` : ''}
+        </div>
+    `).join('');
+
+    const navButtons = isSingle ? `
+        <div class="flex justify-between mt-6 gap-3">
+            <button onclick="skipImport(${idx})" class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs rounded-md uppercase tracking-widest transition-colors">Skip</button>
+            <button onclick="saveImport(${idx})" class="flex-1 py-3 bg-brand active:bg-[#4a2626] text-white font-bold text-xs rounded-md uppercase tracking-widest shadow-md transition-colors">Save & Next</button>
+        </div>
+        <div class="flex justify-center items-center gap-6 mt-6 border-t border-gray-100 pt-4">
+            <button onclick="navigateImport(-1)" class="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-brand disabled:opacity-30" ${idx === 0 ? 'disabled' : ''}>← Previous</button>
+            <span class="text-[10px] font-bold bg-gray-100 px-3 py-1 rounded-full text-gray-500">${idx + 1} of ${pendingImports.length}</span>
+            <button onclick="navigateImport(1)" class="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-brand disabled:opacity-30" ${idx === pendingImports.length - 1 ? 'disabled' : ''}>Next →</button>
+        </div>
+    ` : `
+        <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+            <button onclick="skipImport(${idx})" class="w-1/4 py-2.5 bg-gray-200 text-gray-700 font-bold text-[10px] rounded uppercase tracking-widest hover:bg-gray-300 transition-colors">Skip</button>
+            <button onclick="saveImport(${idx})" class="w-3/4 py-2.5 bg-brand text-white font-bold text-[10px] rounded uppercase tracking-widest shadow-md active:bg-[#4a2626] transition-colors">Save Transaction</button>
+        </div>
+    `;
+
+    return `
+        <div class="bg-white border border-gray-200 p-5 rounded-xl shadow-sm">
+            <div class="flex justify-between items-start mb-3">
+                <div class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded uppercase tracking-widest">${item.date}</div>
+                <div class="text-xl font-bold font-inter ${item.type === 'Payment' ? 'text-red-600' : 'text-green-600'}">${item.type === 'Payment' ? '-' : '+'}₹${item.total.toLocaleString('en-IN')}</div>
+            </div>
             
-            let splitHtml = item.splits.map((split, sIdx) => `
-                <div class="flex gap-2 items-center mt-2">
-                    <select onchange="updateImportSplit(${idx}, ${sIdx}, 'account_id', this.value)" class="flex-1 p-2.5 text-sm border border-gray-300 rounded-md outline-none focus:border-brand font-semibold text-gray-800">
-                        <option value="">Select Account...</option>
-                        ${allOptionsArray.map(a => `<option value="${a.id}" ${split.account_id === a.id ? 'selected' : ''}>${a.name}</option>`).join('')}
-                    </select>
-                    <div class="relative w-1/3">
-                        <span class="absolute left-3 top-2.5 text-gray-400 font-bold text-sm">₹</span>
-                        <input type="number" onchange="updateImportSplit(${idx}, ${sIdx}, 'amount', this.value)" value="${split.amount}" class="w-full pl-7 p-2.5 text-sm font-inter font-bold border border-gray-300 rounded-md outline-none focus:border-brand">
-                    </div>
-                    ${item.splits.length > 1 ? `<button onclick="removeImportSplit(${idx}, ${sIdx})" class="text-red-500 font-bold text-xs p-2 hover:bg-red-50 rounded">X</button>` : ''}
+            <!-- Raw Bank Detail: Shown but NOT saved -->
+            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Bank Statement Detail</div>
+            <div class="text-sm font-medium text-gray-800 bg-blue-50/50 p-3 rounded-lg border border-blue-100 mb-4 leading-relaxed">${item.narration}</div>
+            
+            <!-- Custom Narration: Typed by you, SAVED to Database -->
+            <div class="mb-5">
+                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">My Narration (Optional)</label>
+                <input type="text" id="custom-narration-${idx}" placeholder="Type a clean note..." class="w-full mt-1 p-2 bg-gray-50 border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors text-gray-800">
+            </div>
+            
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Offset Account</label>
+                    <button onclick="addImportSplit(${idx})" class="text-[10px] font-bold text-brand uppercase tracking-widest hover:underline">+ Add Split</button>
                 </div>
-            `).join('');
-
-            const navButtons = isSingle ? `
-                <div class="flex justify-between mt-6 gap-3">
-                    <button onclick="skipImport(${idx})" class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs rounded-md uppercase tracking-widest transition-colors">Skip</button>
-                    <button onclick="saveImport(${idx})" class="flex-1 py-3 bg-brand active:bg-[#4a2626] text-white font-bold text-xs rounded-md uppercase tracking-widest shadow-md transition-colors">Save & Next</button>
-                </div>
-                <div class="flex justify-center items-center gap-6 mt-6 border-t border-gray-100 pt-4">
-                    <button onclick="navigateImport(-1)" class="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-brand disabled:opacity-30" ${idx === 0 ? 'disabled' : ''}>← Previous</button>
-                    <span class="text-[10px] font-bold bg-gray-100 px-3 py-1 rounded-full text-gray-500">${idx + 1} of ${pendingImports.length}</span>
-                    <button onclick="navigateImport(1)" class="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-brand disabled:opacity-30" ${idx === pendingImports.length - 1 ? 'disabled' : ''}>Next →</button>
-                </div>
-            ` : `
-                <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">
-                    <button onclick="skipImport(${idx})" class="w-1/4 py-2.5 bg-gray-200 text-gray-700 font-bold text-[10px] rounded uppercase tracking-widest hover:bg-gray-300 transition-colors">Skip</button>
-                    <button onclick="saveImport(${idx})" class="w-3/4 py-2.5 bg-brand text-white font-bold text-[10px] rounded uppercase tracking-widest shadow-md active:bg-[#4a2626] transition-colors">Save Transaction</button>
-                </div>
-            `;
-
-            return `
-                <div class="bg-white border border-gray-200 p-5 rounded-xl shadow-sm">
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded uppercase tracking-widest">${item.date}</div>
-                        <div class="text-xl font-bold font-inter ${item.type === 'Payment' ? 'text-red-600' : 'text-green-600'}">${item.type === 'Payment' ? '-' : '+'}₹${item.total.toLocaleString('en-IN')}</div>
-                    </div>
-                    <div class="text-sm font-medium text-gray-800 bg-blue-50/50 p-3 rounded-lg border border-blue-100 mb-5 leading-relaxed">${item.narration}</div>
-                    
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Offset Account</label>
-                            <button onclick="addImportSplit(${idx})" class="text-[10px] font-bold text-brand uppercase tracking-widest hover:underline">+ Add Split</button>
-                        </div>
-                        ${splitHtml}
-                    </div>
-                    ${navButtons}
-                </div>
-            `;
-        }
+                ${splitHtml}
+            </div>
+            ${navButtons}
+        </div>
+    `;
+}
 
         function navigateImport(dir) { currentImportIdx += dir; renderImportView(); }
         function addImportSplit(idx) { pendingImports[idx].splits.push({ id: Date.now(), account_id: '', amount: 0 }); renderImportView(); }
@@ -795,25 +804,34 @@ async function saveImport(idx) {
         }
 
         async function saveImport(idx) {
-            const item = pendingImports[idx];
-            const bankId = document.getElementById('master-account').value;
-            
-            let splitTotal = 0;
-            for(let s of item.splits) {
-                if(!s.account_id || s.amount <= 0) return alert("All splits must have an account and valid amount.");
-                splitTotal += s.amount;
-            }
-            if(Math.abs(splitTotal - item.total) > 0.01) return alert(`Splits total (₹${splitTotal}) must match transaction amount (₹${item.total}).`);
+    const item = pendingImports[idx];
+    const bankId = document.getElementById('master-account').value;
+    
+    // Grab the clean narration typed by the user, totally ignoring the messy bank detail
+    const customNarration = document.getElementById(`custom-narration-${idx}`).value.trim();
+    
+    let splitTotal = 0;
+    for(let s of item.splits) {
+        if(!s.account_id || s.amount <= 0) return alert("All splits must have an account and valid amount.");
+        splitTotal += s.amount;
+    }
+    if(Math.abs(splitTotal - item.total) > 0.01) return alert(`Splits total (₹${splitTotal}) must match transaction amount (₹${item.total}).`);
 
-            const { data: v, error: vErr } = await dbClient.from('vouchers').insert({ user_id: currentUser.id, date: item.date, type: item.type, narration: item.narration }).select().single();
-            if (vErr) return alert(vErr.message);
+    const { data: v, error: vErr } = await dbClient.from('vouchers').insert({ 
+        user_id: currentUser.id, 
+        date: item.date, 
+        type: item.type, 
+        narration: customNarration // Only saves your custom input (or leaves it blank)
+    }).select().single();
+    
+    if (vErr) return alert(vErr.message);
 
-            let entries = [{ voucher_id: v.id, account_id: bankId, amount: item.total, type: item.type === 'Payment' ? 'Cr' : 'Dr' }];
-            item.splits.forEach(s => entries.push({ voucher_id: v.id, account_id: s.account_id, amount: s.amount, type: item.type === 'Payment' ? 'Dr' : 'Cr' }));
-            
-            await dbClient.from('voucher_entries').insert(entries);
-            skipImport(idx); 
-        }
+    let entries = [{ voucher_id: v.id, account_id: bankId, amount: item.total, type: item.type === 'Payment' ? 'Cr' : 'Dr' }];
+    item.splits.forEach(s => entries.push({ voucher_id: v.id, account_id: s.account_id, amount: s.amount, type: item.type === 'Payment' ? 'Dr' : 'Cr' }));
+    
+    await dbClient.from('voucher_entries').insert(entries);
+    skipImport(idx); 
+}
 
         // ================= REPORTS & CHARTS MODULE =================
         async function renderReports() {
