@@ -611,12 +611,44 @@ function handleImport(e) {
 
                 let dateRaw = row[dateCol];
                 let cleanDate = new Date().toISOString().split('T')[0];
-                if(dateRaw) {
-                    const d = new Date(dateRaw);
-                    if(!isNaN(d.getTime())) cleanDate = d.toISOString().split('T')[0];
-                    else {
-                        const p = dateRaw.split(/[-/ ]/);
-                        if(p.length >= 3) cleanDate = isNaN(p[1]) ? new Date(`${p[1]} ${p[0]}, ${p[2]}`).toISOString().split('T')[0] : (p[0].length <= 2 ? `${p[2]}-${p[1]}-${p[0]}` : cleanDate);
+                
+                if (dateRaw) {
+                    if (typeof dateRaw === 'number') {
+                        // Excel serial format
+                        const dateInfo = new Date(Math.round((dateRaw - 25569) * 86400 * 1000));
+                        cleanDate = dateInfo.toISOString().split('T')[0];
+                    } else {
+                        // Explicit string parsing for DD/MM/YYYY or DD-MMM-YYYY
+                        const dateStr = String(dateRaw).trim();
+                        const dmY = dateStr.match(/^(\d{1,2})[-/ .](\d{1,2}|[a-zA-Z]{3})[-/ .](\d{2,4})/);
+                        
+                        if (dmY) {
+                            let day = dmY[1].padStart(2, '0');
+                            let monthRaw = dmY[2];
+                            let month = '01';
+                            
+                            if (isNaN(monthRaw)) {
+                                const mNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+                                const mIdx = mNames.findIndex(m => m === monthRaw.toLowerCase().substring(0,3));
+                                if(mIdx >= 0) month = String(mIdx + 1).padStart(2, '0');
+                            } else {
+                                month = monthRaw.padStart(2, '0');
+                            }
+                            
+                            let year = dmY[3];
+                            if (year.length === 2) year = '20' + year;
+                            
+                            // Prevent month > 12 errors if format was accidentally MM/DD/YYYY
+                            if (!isNaN(monthRaw) && parseInt(month) > 12 && parseInt(day) <= 12) {
+                                cleanDate = `${year}-${day}-${month}`;
+                            } else {
+                                cleanDate = `${year}-${month}-${day}`;
+                            }
+                        } else {
+                            // Fallback for native Date parsing
+                            const d = new Date(dateStr);
+                            if(!isNaN(d.getTime())) cleanDate = d.toISOString().split('T')[0];
+                        }
                     }
                 }
 
@@ -646,6 +678,34 @@ function handleImport(e) {
         e.target.value = ''; 
     };
     reader.readAsArrayBuffer(file);
+}
+
+async function saveImport(idx) {
+    const item = pendingImports[idx];
+    const bankId = document.getElementById('master-account').value;
+    
+    let splitTotal = 0;
+    for(let s of item.splits) {
+        if(!s.account_id || s.amount <= 0) return alert("All splits must have an account and valid amount.");
+        splitTotal += s.amount;
+    }
+    if(Math.abs(splitTotal - item.total) > 0.01) return alert(`Splits total (₹${splitTotal}) must match transaction amount (₹${item.total}).`);
+
+    // Sends an empty string to the database instead of the narration
+    const { data: v, error: vErr } = await dbClient.from('vouchers').insert({ 
+        user_id: currentUser.id, 
+        date: item.date, 
+        type: item.type, 
+        narration: "" 
+    }).select().single();
+    
+    if (vErr) return alert(vErr.message);
+
+    let entries = [{ voucher_id: v.id, account_id: bankId, amount: item.total, type: item.type === 'Payment' ? 'Cr' : 'Dr' }];
+    item.splits.forEach(s => entries.push({ voucher_id: v.id, account_id: s.account_id, amount: s.amount, type: item.type === 'Payment' ? 'Dr' : 'Cr' }));
+    
+    await dbClient.from('voucher_entries').insert(entries);
+    skipImport(idx); 
 }
         function setImportView(mode) { 
             importViewMode = mode; 
