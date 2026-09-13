@@ -24,6 +24,7 @@
                         surface: '#ffffff',
                         green: { 50: '#f0fdf4', 100: '#dcfce7', 600: '#16a34a' },
                         red: { 50: '#fef2f2', 100: '#fee2e2', 600: '#dc2626' },
+                        blue: { 50: '#eff6ff', 100: '#dbeafe', 600: '#2563eb' },
                         gray: { 50: '#f9fafb', 100: '#f3f4f6', 200: '#e5e7eb', 300: '#d1d5db', 400: '#9ca3af', 500: '#6b7280', 600: '#4b5563', 700: '#374151', 800: '#1f2937', 900: '#111827' }
                     },
                     fontFamily: {
@@ -93,24 +94,51 @@
             </button>
         </div>
 
-        <div id="content-area" class="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-32 w-full max-w-[1000px] mx-auto relative scroll-smooth custom-scroll"></div>
+        <div id="content-area" class="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-32 w-full max-w-[1000px] mx-auto relative scroll-smooth custom-scroll transition-colors duration-300"></div>
 
         <div class="bg-white border-t border-gray-200 flex justify-around items-center absolute bottom-0 w-full z-30 pb-safe pt-2 shadow-flat">
-            <button onclick="nav('entry')" id="nav-entry" class="flex flex-col items-center w-1/4 py-2 active:opacity-70 transition-opacity tab-active"><svg class="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 015.25 6H10" /></svg><span class="text-[9px] font-semibold uppercase tracking-wider">Entry</span></button>
+            <button onclick="nav('entry')" id="nav-entry" class="flex flex-col items-center w-1/4 py-2 active:opacity-70 transition-opacity tab-active"><svg class="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg><span class="text-[9px] font-semibold uppercase tracking-wider">Entry</span></button>
             <button onclick="nav('dashboard')" id="nav-dashboard" class="flex flex-col items-center w-1/4 py-2 active:opacity-70 transition-opacity tab-inactive"><svg class="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" /></svg><span class="text-[9px] font-semibold uppercase tracking-wider">Dashboard</span></button>
             <button onclick="nav('accounts')" id="nav-accounts" class="flex flex-col items-center w-1/4 py-2 active:opacity-70 transition-opacity tab-inactive"><svg class="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3" /></svg><span class="text-[9px] font-semibold uppercase tracking-wider">Balance Sheet</span></button>
             <button onclick="nav('settings')" id="nav-settings" class="flex flex-col items-center w-1/4 py-2 active:opacity-70 transition-opacity tab-inactive"><svg class="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg><span class="text-[9px] font-semibold uppercase tracking-wider">Settings</span></button>
         </div>
     </div>
 
-    <!-- Modals -->
+    <!-- SMS Alert Modal -->
+    <div id="modal-sms-alert" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl sheet-enter border border-gray-200">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-gray-900 leading-tight">Bank Alert Detected</h3>
+                    <p class="text-[10px] text-gray-400 font-medium">New SMS transaction received</p>
+                </div>
+            </div>
+            <div class="bg-gray-50 border border-gray-100 rounded-xl p-3.5 mb-5 flex justify-between items-center">
+                <div>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-0.5">Type</span>
+                    <span id="sms-pop-type" class="text-xs font-bold text-gray-800">Payment</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-0.5">Amount</span>
+                    <span id="sms-pop-amount" class="text-base font-bold font-inter text-brand">₹0</span>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="dismissSmsModal()" class="w-1/3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs rounded-xl uppercase tracking-wider transition-colors">Dismiss</button>
+                <button onclick="applySmsToEntry()" class="w-2/3 py-2.5 bg-brand active:bg-[#4a2626] text-white font-bold text-xs rounded-xl uppercase tracking-wider shadow-md transition-colors">Categorize</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Config Modal -->
     <div id="modal-import-config" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full sm:w-96 rounded-xl p-6 shadow-2xl sheet-enter border border-gray-200">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-gray-900">Import Checklist</h3>
-                <button onclick="document.getElementById('modal-import-config').classList.add('hidden')" class="text-gray-400 hover:text-red-500 transition-colors">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
+                <button onclick="document.getElementById('modal-import-config').classList.add('hidden')" class="text-gray-400 hover:text-red-500 transition-colors"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
             <div class="space-y-4">
                 <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
@@ -124,6 +152,7 @@
         </div>
     </div>
 
+    <!-- New Account Modal -->
     <div id="modal-account" class="hidden fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4 sm:p-0">
         <div onclick="event.stopPropagation()" class="bg-white w-full sm:w-96 rounded-xl p-6 pb-safe shadow-2xl sheet-enter border border-gray-200">
             <div class="flex justify-between items-center mb-5">
@@ -139,6 +168,7 @@
         </div>
     </div>
 
+    <!-- Recurring Modal -->
     <div id="modal-recurring" class="hidden fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4 sm:p-0">
         <div onclick="event.stopPropagation()" class="bg-white w-full sm:w-96 rounded-xl p-6 pb-safe shadow-2xl sheet-enter border border-gray-200">
             <div class="flex justify-between items-center mb-5">
@@ -146,17 +176,11 @@
                 <button onclick="document.getElementById('modal-recurring').classList.add('hidden')" class="text-gray-400 hover:text-red-500 transition-colors"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
             <div class="space-y-4">
-                <div>
-                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Title</label>
-                    <input id="rec-name" type="text" placeholder="e.g. Netflix, SIP, Rent" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors">
-                </div>
+                <div><label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Title</label><input id="rec-name" type="text" placeholder="e.g. Netflix, SIP, Rent" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors"></div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Amount</label>
-                        <div class="relative mt-1">
-                            <span class="absolute left-3 top-2.5 text-gray-400 font-semibold text-sm">₹</span>
-                            <input id="rec-amount" type="number" placeholder="0" class="w-full pl-7 p-2.5 bg-white border border-gray-200 rounded-md outline-none font-inter text-sm focus:border-brand transition-colors">
-                        </div>
+                        <div class="relative mt-1"><span class="absolute left-3 top-2.5 text-gray-400 font-semibold text-sm">₹</span><input id="rec-amount" type="number" placeholder="0" class="w-full pl-7 p-2.5 bg-white border border-gray-200 rounded-md outline-none font-inter text-sm focus:border-brand transition-colors"></div>
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Day of Month</label>
@@ -164,21 +188,15 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-1 gap-3 pt-2">
-                    <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Pay To (Expense/Invest)</label>
-                        <select id="rec-to" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors"></select>
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Pay From (Bank)</label>
-                        <select id="rec-from" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors"></select>
-                    </div>
+                    <div><label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Pay To (Expense/Invest)</label><select id="rec-to" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors"></select></div>
+                    <div><label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Pay From (Bank)</label><select id="rec-from" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors"></select></div>
                 </div>
             </div>
             <button onclick="saveRecurring()" class="w-full mt-8 p-3 bg-brand text-white rounded-md font-bold text-xs uppercase tracking-widest shadow-md active:bg-[#4a2626] transition-colors">Save Schedule</button>
         </div>
     </div>
 
-    <!-- Import Modal (Dual View) -->
+    <!-- Dual View Import Modal -->
     <div id="modal-import" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
             <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-xl">
@@ -186,9 +204,7 @@
                 <div class="flex gap-2 items-center">
                     <button id="btn-view-single" onclick="setImportView('single')" class="px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-md bg-brand text-white transition-colors">Step-by-Step</button>
                     <button id="btn-view-all" onclick="setImportView('all')" class="px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-md bg-white border border-gray-200 text-gray-600 transition-colors">List View</button>
-                    <button onclick="document.getElementById('modal-import').classList.add('hidden')" class="ml-2 text-gray-400 hover:text-red-500 transition-colors">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
+                    <button onclick="document.getElementById('modal-import').classList.add('hidden')" class="ml-2 text-gray-400 hover:text-red-500 transition-colors"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </div>
             </div>
             <div id="import-container" class="flex-1 overflow-y-auto p-4 custom-scroll bg-gray-100"></div>
@@ -224,6 +240,13 @@
         let savedAccountsScrollTop = 0;
         let accountSearchQuery = '';
         let hideZeroBalances = false;
+
+        // Lazy-loaded Ledger State
+        let ledgerPage = 0;
+        let ledgerHasMore = true;
+        let ledgerLoading = false;
+        let activeLedgerAccId = null;
+        let activeLedgerRunningBal = 0;
 
         function formatDate(dateString) {
             if (!dateString) return '';
@@ -274,14 +297,51 @@
         }
 
         async function loadInitialData() {
-            let { data: groups } = await dbClient.from('account_groups').select('*');
-            accountGroups = groups || [];
+            let { data: groups, error } = await dbClient.from('account_groups').select('*');
+            if (!error && groups) {
+                accountGroups = groups;
+                const select = document.getElementById('acc-group');
+                if (select) {
+                    select.innerHTML = accountGroups
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map(g => `<option value="${g.id}">${g.name} (${g.nature})</option>`)
+                        .join('');
+                }
+            }
             await refreshAccounts();
         }
 
         async function refreshAccounts() {
-            let { data: accounts } = await dbClient.from('accounts').select('*');
+            let { data: accounts } = await dbClient.from('accounts').select('*').eq('user_id', currentUser.id);
             userAccounts = accounts || [];
+        }
+
+       function getPageBackgroundGradient(type) {
+    if (type === 'Payment') {
+        return 'bg-gradient-to-b from-red-100/70 via-red-50/30 to-gray-50';
+    }
+    if (type === 'Receipt') {
+        return 'bg-gradient-to-b from-green-100/70 via-green-50/30 to-gray-50';
+    }
+    if (type === 'Contra') {
+        return 'bg-gradient-to-b from-blue-100/70 via-blue-50/30 to-gray-50';
+    }
+    return 'bg-gray-50';
+}
+
+        function updateContentAreaBackground() {
+            const content = document.getElementById('content-area');
+            if (!content) return;
+            content.className = content.className
+                .replace(/bg-gradient-to-b [^\s]+ [^\s]+ [^\s]+/g, '')
+                .replace(/bg-gray-50/g, '')
+                .trim();
+
+            if (currentTab === 'entry') {
+                content.classList.add(...getPageBackgroundGradient(currentEntryType).split(' '));
+            } else {
+                content.classList.add('bg-gray-50');
+            }
         }
 
         function nav(tabName) {
@@ -293,6 +353,8 @@
             });
             document.getElementById('page-title').innerText = tabName === 'accounts' ? 'Balance Sheet' : tabName.charAt(0).toUpperCase() + tabName.slice(1);
             
+            updateContentAreaBackground();
+
             const content = document.getElementById('content-area');
             content.innerHTML = '<div class="flex justify-center mt-20"><div class="loader"></div></div>';
             
@@ -309,77 +371,82 @@
         let activeDropdownIndices = {};
 
         function renderEntry() {
-            const html = `
-                <div class="space-y-4 page-enter">
-                    <div class="bg-white p-4 rounded-md shadow-flat border border-gray-200">
-                        <div class="flex mb-5 gap-2">
-                            <button onclick="switchEntryType('Payment')" id="btn-pay" class="flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-brand text-white border-brand">Payment</button>
-                            <button onclick="switchEntryType('Receipt')" id="btn-rec" class="flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-white text-gray-600 border-gray-200 hover:bg-gray-50">Receipt</button>
-                            <button onclick="switchEntryType('Contra')" id="btn-con" class="flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-white text-gray-600 border-gray-200 hover:bg-gray-50">Transfer</button>
-                        </div>
+    updateContentAreaBackground();
 
-                        <div class="space-y-5">
-                            <div class="flex flex-col">
-                                <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1">Date</label>
-                                <input type="date" id="entry-date" class="w-full p-2 border border-gray-200 rounded-md outline-none text-sm font-inter focus:border-brand transition-colors text-gray-700" value="${new Date().toISOString().split('T')[0]}">
-                            </div>
-                            
-                            <div class="border border-gray-100 rounded-md p-3 bg-gray-50/50">
-                                <div id="split-lines-container" class="space-y-3"></div>
-                                <button onclick="addSplitLine()" class="w-full mt-3 py-2 bg-white text-gray-600 rounded-md font-semibold text-xs uppercase tracking-widest border border-gray-200 hover:bg-gray-50 transition-colors">
-                                    + Add Another Split
-                                </button>
-                            </div>
+    const inactiveBtn = "flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-white text-gray-600 border-gray-200 hover:bg-gray-50";
+    const activeTab = "flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-brand text-white border-brand shadow-sm";
 
-                            <div class="flex flex-col p-3 bg-gray-50 border border-gray-200 rounded-md">
-                                <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1" id="lbl-master">PAID FROM (BANK/CASH)</label>
-                                <select id="master-account" class="w-full p-2 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors text-gray-900 font-semibold"></select>
-                            </div>
+    const html = `
+        <div class="space-y-4 page-enter">
+            <div class="bg-white p-4 rounded-xl shadow-flat border border-gray-200">
+                <div class="flex mb-5 gap-2">
+                    <button onclick="switchEntryType('Payment')" id="btn-pay" class="${currentEntryType === 'Payment' ? activeTab : inactiveBtn}">Payment</button>
+                    <button onclick="switchEntryType('Receipt')" id="btn-rec" class="${currentEntryType === 'Receipt' ? activeTab : inactiveBtn}">Receipt</button>
+                    <button onclick="switchEntryType('Contra')" id="btn-con" class="${currentEntryType === 'Contra' ? activeTab : inactiveBtn}">Transfer</button>
+                </div>
 
-                            <div class="flex justify-between items-center py-2 border-t border-b border-gray-100 mt-2">
-                                <span class="font-semibold text-gray-500 uppercase text-xs tracking-widest">Total</span>
-                                <span id="entry-total-display" class="font-bold text-2xl font-inter text-gray-900">₹0</span>
-                            </div>
-
-                            <div class="flex flex-col">
-                                <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1">Narration</label>
-                                <input type="text" id="entry-narration" placeholder="Notes (Optional)" class="w-full p-2.5 border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors">
-                            </div>
-
-                            <button id="btn-save" onclick="submitTransaction()" class="w-full bg-brand text-white p-3.5 rounded-md font-bold text-xs uppercase tracking-widest shadow-flat mt-2 active:bg-[#4a2626] transition-colors">Save Transaction</button>
-                            
-                            <input type="file" id="import-file" accept=".csv, .xlsx, .xls" class="hidden" onchange="handleImport(event)">
-                            <button onclick="document.getElementById('modal-import-config').classList.remove('hidden')" class="w-full bg-white text-brand border border-brand p-3.5 rounded-md font-bold text-xs uppercase tracking-widest mt-3 hover:bg-gray-50 transition-colors">Import Excel Statement</button>
-                        </div>
+                <div class="space-y-5">
+                    <div class="flex flex-col">
+                        <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1">Date</label>
+                        <input type="date" id="entry-date" class="w-full p-2 border border-gray-200 rounded-md outline-none text-sm font-inter focus:border-brand transition-colors text-gray-700 bg-white" value="${new Date().toISOString().split('T')[0]}">
+                    </div>
+                    
+                    <div class="border border-gray-100 rounded-md p-3 bg-gray-50/50">
+                        <div id="split-lines-container" class="space-y-3"></div>
+                        <button onclick="addSplitLine()" class="w-full mt-3 py-2 bg-white text-gray-600 rounded-md font-semibold text-xs uppercase tracking-widest border border-gray-200 hover:bg-gray-50 transition-colors">
+                            + Add Another Split
+                        </button>
                     </div>
 
-                    <div class="bg-white rounded-md shadow-flat border border-gray-200 overflow-hidden">
-                        <div class="p-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                            <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Recent Activity</h3>
-                        </div>
-                        <div id="entry-feed-container" class="divide-y divide-gray-50"></div>
-                        <div id="entry-feed-loading" class="p-4 flex justify-center hidden"><div class="loader"></div></div>
+                    <div class="flex flex-col p-3 bg-gray-50 border border-gray-200 rounded-md">
+                        <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1" id="lbl-master">PAID FROM (BANK/CASH)</label>
+                        <select id="master-account" class="w-full p-2 bg-white border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors text-gray-900 font-semibold"></select>
                     </div>
-                </div>`;
-            document.getElementById('content-area').innerHTML = html;
-            
-            if(splitLines.length === 0) splitLines = [{ id: Date.now(), account: '', amount: '' }];
-            populateEntryDropdowns();
-            renderSplitLines();
 
-            entryFeedPage = 0;
-            entryFeedHasMore = true;
+                    <div class="flex justify-between items-center py-2 border-t border-b border-gray-100 mt-2">
+                        <span class="font-semibold text-gray-500 uppercase text-xs tracking-widest">Total</span>
+                        <span id="entry-total-display" class="font-bold text-2xl font-inter text-gray-900">₹0</span>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1">Narration</label>
+                        <input type="text" id="entry-narration" placeholder="Notes (Optional)" class="w-full p-2.5 border border-gray-200 rounded-md outline-none text-sm focus:border-brand transition-colors bg-white">
+                    </div>
+
+                    <button id="btn-save" onclick="submitTransaction()" class="w-full bg-brand text-white p-3.5 rounded-md font-bold text-xs uppercase tracking-widest shadow-flat mt-2 active:bg-[#4a2626] transition-colors">Save Transaction</button>
+                    
+                    <input type="file" id="import-file" accept=".csv, .xlsx, .xls" class="hidden" onchange="handleImport(event)">
+                    <button onclick="document.getElementById('modal-import-config').classList.remove('hidden')" class="w-full bg-white text-brand border border-brand p-3.5 rounded-md font-bold text-xs uppercase tracking-widest mt-3 hover:bg-gray-50 transition-colors">Import Excel Statement</button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-flat border border-gray-200 overflow-hidden">
+                <div class="p-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Recent Activity</h3>
+                </div>
+                <div id="entry-feed-container" class="divide-y divide-gray-50"></div>
+                <div id="entry-feed-loading" class="p-4 flex justify-center hidden"><div class="loader"></div></div>
+            </div>
+        </div>`;
+    
+    document.getElementById('content-area').innerHTML = html;
+    
+    if(splitLines.length === 0) splitLines = [{ id: Date.now(), account: '', amount: '' }];
+    populateEntryDropdowns();
+    renderSplitLines();
+
+    entryFeedPage = 0;
+    entryFeedHasMore = true;
+    loadMoreEntryFeed();
+
+    const scrollEl = document.getElementById('content-area');
+    scrollEl.onscroll = () => {
+        if(currentTab !== 'entry') return;
+        if (scrollEl.scrollTop + scrollEl.clientHeight >= scrollEl.scrollHeight - 60) {
             loadMoreEntryFeed();
-
-            const scrollEl = document.getElementById('content-area');
-            scrollEl.onscroll = () => {
-                if(currentTab !== 'entry') return;
-                if (scrollEl.scrollTop + scrollEl.clientHeight >= scrollEl.scrollHeight - 60) {
-                    loadMoreEntryFeed();
-                }
-            };
         }
-
+    };
+}
         async function loadMoreEntryFeed() {
             if (entryFeedLoading || !entryFeedHasMore) return;
             entryFeedLoading = true;
@@ -391,6 +458,7 @@
 
             const { data: vouchers, error } = await dbClient.from('vouchers')
                 .select('*')
+                .eq('user_id', currentUser.id)
                 .order('date', { ascending: false })
                 .range(from, to);
 
@@ -405,7 +473,7 @@
             }
 
             const vIds = vouchers.map(v => v.id);
-            const { data: entries } = await dbClient.from('voucher_entries').select('*').in('voucher_id', vIds);
+            const { data: entries } = await dbClient.from('voucher_entries').select('*').in('voucher_id', vIds).eq('user_id', currentUser.id);
 
             let feedHtml = '';
             vouchers.forEach(v => {
@@ -455,28 +523,29 @@
 
         async function deleteVoucherFeed(id) {
             if(confirm("Permanently delete this transaction?")) {
-                await dbClient.from('vouchers').delete().eq('id', id);
+                await dbClient.from('vouchers').delete().eq('id', id).eq('user_id', currentUser.id);
                 renderEntry();
             }
         }
 
         function switchEntryType(type) {
-            currentEntryType = type;
-            const activeClass = "flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-brand text-white border-brand";
-            const inactiveClass = "flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-white text-gray-600 border-gray-200 hover:bg-gray-50";
-            
-            document.getElementById('btn-pay').className = type === 'Payment' ? activeClass : inactiveClass;
-            document.getElementById('btn-rec').className = type === 'Receipt' ? activeClass : inactiveClass;
-            document.getElementById('btn-con').className = type === 'Contra' ? activeClass : inactiveClass;
-            
-            if(type === 'Payment') { document.getElementById('lbl-master').innerText = "PAID FROM (BANK/CASH)"; }
-            else if(type === 'Receipt') { document.getElementById('lbl-master').innerText = "RECEIVED IN (BANK/CASH)"; }
-            else { document.getElementById('lbl-master').innerText = "TRANSFER FROM"; }
-            
-            splitLines = [{ id: Date.now(), account: '', amount: '' }];
-            populateEntryDropdowns();
-            renderSplitLines();
-        }
+    currentEntryType = type;
+    
+    const inactiveBtn = "flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-white text-gray-600 border-gray-200 hover:bg-gray-50";
+    const activeTab = "flex-1 py-2 rounded-md text-sm font-semibold border transition-colors bg-brand text-white border-brand shadow-sm";
+    document.getElementById('btn-pay').className = type === 'Payment' ? activeTab : inactiveBtn;
+    document.getElementById('btn-rec').className = type === 'Receipt' ? activeTab : inactiveBtn;
+    document.getElementById('btn-con').className = type === 'Contra' ? activeTab : inactiveBtn;
+    
+    updateContentAreaBackground();
+
+    if(type === 'Payment') { document.getElementById('lbl-master').innerText = "PAID FROM (BANK/CASH)"; }
+    else if(type === 'Receipt') { document.getElementById('lbl-master').innerText = "RECEIVED IN (BANK/CASH)"; }
+    else { document.getElementById('lbl-master').innerText = "TRANSFER FROM"; }
+    
+    populateEntryDropdowns();
+    renderSplitLines();
+}
 
         function populateEntryDropdowns(presetMasterId = null) {
             const masterSelect = document.getElementById('master-account');
@@ -659,13 +728,19 @@
             btn.disabled = true; const originalText = btn.innerHTML;
             btn.innerHTML = '<div class="loader border-white border-t-transparent w-5 h-5 mx-auto"></div>';
 
-            const { data: voucher, error: vError } = await dbClient.from('vouchers').insert({ user_id: currentUser.id, date, type: currentEntryType, narration }).select().single();
+            const { data: voucher, error: vError } = await dbClient.from('vouchers').insert({ 
+                user_id: currentUser.id, 
+                date, 
+                type: currentEntryType, 
+                narration 
+            }).select().single();
+
             if(vError) { btn.disabled = false; btn.innerHTML = originalText; return alert(vError.message); }
 
             let dbEntries = [];
-            dbEntries.push({ voucher_id: voucher.id, account_id: masterAccId, amount: totalAmount, type: currentEntryType === 'Payment' ? 'Cr' : currentEntryType === 'Receipt' ? 'Dr' : 'Cr' });
+            dbEntries.push({ voucher_id: voucher.id, user_id: currentUser.id, account_id: masterAccId, amount: totalAmount, type: currentEntryType === 'Payment' ? 'Cr' : currentEntryType === 'Receipt' ? 'Dr' : 'Cr' });
             splitLines.forEach(line => {
-                dbEntries.push({ voucher_id: voucher.id, account_id: line.account, amount: parseFloat(line.amount), type: currentEntryType === 'Payment' ? 'Dr' : currentEntryType === 'Receipt' ? 'Cr' : 'Dr' });
+                dbEntries.push({ voucher_id: voucher.id, user_id: currentUser.id, account_id: line.account, amount: parseFloat(line.amount), type: currentEntryType === 'Payment' ? 'Dr' : currentEntryType === 'Receipt' ? 'Cr' : 'Dr' });
             });
 
             await dbClient.from('voucher_entries').insert(dbEntries);
@@ -920,8 +995,8 @@
             
             if (vErr) return alert(vErr.message);
 
-            let entries = [{ voucher_id: v.id, account_id: bankId, amount: item.total, type: item.type === 'Payment' ? 'Cr' : 'Dr' }];
-            item.splits.forEach(s => entries.push({ voucher_id: v.id, account_id: s.account_id, amount: s.amount, type: item.type === 'Payment' ? 'Dr' : 'Cr' }));
+            let entries = [{ voucher_id: v.id, user_id: currentUser.id, account_id: bankId, amount: item.total, type: item.type === 'Payment' ? 'Cr' : 'Dr' }];
+            item.splits.forEach(s => entries.push({ voucher_id: v.id, user_id: currentUser.id, account_id: s.account_id, amount: s.amount, type: item.type === 'Payment' ? 'Dr' : 'Cr' }));
             
             await dbClient.from('voucher_entries').insert(entries);
             skipImport(idx); 
@@ -944,13 +1019,18 @@
             const content = document.getElementById('content-area');
             content.innerHTML = '<div class="flex justify-center mt-20"><div class="loader"></div></div>';
 
-            const { data: rawVouchers } = await dbClient.from('vouchers').select('id, date, narration, type').order('date', { ascending: false }).limit(2500); 
+            const { data: rawVouchers } = await dbClient.from('vouchers')
+                .select('id, date, narration, type')
+                .eq('user_id', currentUser.id)
+                .order('date', { ascending: false })
+                .limit(2500); 
+
             if (!rawVouchers || rawVouchers.length === 0) return content.innerHTML = '<div class="text-center mt-10 text-gray-400 font-bold uppercase tracking-widest">No data found</div>';
 
             let rawEntries = [];
             for (let i = 0; i < rawVouchers.length; i += 100) {
                 const chunkIds = rawVouchers.slice(i, i + 100).map(v => v.id);
-                const { data: chunkEntries } = await dbClient.from('voucher_entries').select('*').in('voucher_id', chunkIds);
+                const { data: chunkEntries } = await dbClient.from('voucher_entries').select('*').in('voucher_id', chunkIds).eq('user_id', currentUser.id);
                 if (chunkEntries) rawEntries.push(...chunkEntries);
             }
 
@@ -1218,10 +1298,10 @@
             });
         }
 
-        // ================= TALLY-STYLE TWO-COLUMN BALANCE SHEET =================
+        // ================= TALLY 2-COLUMN BALANCE SHEET =================
         async function renderAccounts(restoreScroll = true) {
             const content = document.getElementById('content-area');
-            const { data: accounts } = await dbClient.from('accounts').select('*');
+            const { data: accounts } = await dbClient.from('accounts').select('*').eq('user_id', currentUser.id);
             if (!accounts) return; 
             userAccounts = accounts;
 
@@ -1234,7 +1314,6 @@
                 filteredAccs = filteredAccs.filter(a => Math.abs(parseFloat(a.current_balance) || 0) > 0.01);
             }
 
-            // Calculations
             const getNatureTotal = (nature) => {
                 const gIds = accountGroups.filter(g => g.nature === nature).map(g => g.id);
                 return userAccounts.filter(a => gIds.includes(a.group_id))
@@ -1247,11 +1326,9 @@
             const totalExpenses = getNatureTotal('Expenses');
             const netProfit = totalIncome - totalExpenses;
 
-            // Balanced Column Totals
             const liabilitiesColumnTotal = totalLiabilities + (netProfit > 0 ? netProfit : 0);
             const assetsColumnTotal = totalAssets + (netProfit < 0 ? Math.abs(netProfit) : 0);
 
-            // Accordion Block Builder
             const renderGroupAccordion = (group, isLiabilitySide = false) => {
                 const grpAccs = filteredAccs.filter(a => a.group_id === group.id);
                 if (grpAccs.length === 0) return '';
@@ -1290,8 +1367,6 @@
 
             let html = `
                 <div class="space-y-4 page-enter pb-32">
-                    
-                    <!-- Search & Option Controls -->
                     <div class="flex gap-2">
                         <div class="relative flex-1">
                             <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -1302,7 +1377,6 @@
                         </button>
                     </div>
 
-                    <!-- Tally Two-Column Sheet Container -->
                     <div class="bg-white border border-gray-200 rounded-xl shadow-flat overflow-hidden">
                         <div class="grid grid-cols-2 bg-gray-50 border-b border-gray-200">
                             <div class="p-3 border-r border-gray-200">
@@ -1314,14 +1388,12 @@
                         </div>
 
                         <div class="grid grid-cols-2 divide-x divide-gray-200 min-h-[300px]">
-                            <!-- Left Column: Liabilities & Capital -->
                             <div class="flex flex-col justify-between">
                                 <div class="divide-y divide-gray-100">
                                     ${liabilityGroups.map(g => renderGroupAccordion(g, true)).join('')}
-
                                     ${netProfit > 0 ? `
                                         <div class="p-2.5 flex justify-between items-center bg-green-50/50 border-b border-gray-100">
-                                            <span class="text-xs font-bold text-green-700 truncate">Profit & Loss A/c (Net Profit)</span>
+                                            <span class="text-xs font-bold text-green-700 truncate">P&L A/c (Net Profit)</span>
                                             <span class="font-inter text-xs font-bold text-green-700">₹${netProfit.toLocaleString('en-IN')}</span>
                                         </div>
                                     ` : ''}
@@ -1332,14 +1404,12 @@
                                 </div>
                             </div>
 
-                            <!-- Right Column: Assets -->
                             <div class="flex flex-col justify-between">
                                 <div class="divide-y divide-gray-100">
                                     ${assetGroups.map(g => renderGroupAccordion(g, false)).join('')}
-
                                     ${netProfit < 0 ? `
                                         <div class="p-2.5 flex justify-between items-center bg-red-50/50 border-b border-gray-100">
-                                            <span class="text-xs font-bold text-red-700 truncate">Profit & Loss A/c (Net Loss)</span>
+                                            <span class="text-xs font-bold text-red-700 truncate">P&L A/c (Net Loss)</span>
                                             <span class="font-inter text-xs font-bold text-red-700">₹${Math.abs(netProfit).toLocaleString('en-IN')}</span>
                                         </div>
                                     ` : ''}
@@ -1352,7 +1422,6 @@
                         </div>
                     </div>
 
-                    <!-- Collapsible Profit & Loss Statement (Operating Summary) -->
                     <details class="bg-white border border-gray-200 rounded-xl shadow-flat overflow-hidden">
                         <summary class="list-none cursor-pointer bg-gray-50 p-3 flex justify-between items-center select-none hover:bg-gray-100 transition-colors">
                             <div class="flex items-center gap-2">
@@ -1364,12 +1433,10 @@
                             </span>
                         </summary>
                         <div class="grid grid-cols-2 divide-x divide-gray-200 border-t border-gray-200">
-                            <!-- Expenses -->
                             <div class="p-2">
                                 <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest px-2 py-1">Expenses</div>
                                 ${expenseGroups.map(g => renderGroupAccordion(g, false)).join('')}
                             </div>
-                            <!-- Income -->
                             <div class="p-2">
                                 <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest px-2 py-1">Income</div>
                                 ${incomeGroups.map(g => renderGroupAccordion(g, false)).join('')}
@@ -1408,97 +1475,132 @@
         function navigateToLedger(accId) {
             const content = document.getElementById('content-area');
             savedAccountsScrollTop = content.scrollTop;
-            viewLedger(accId);
+            viewLedger(accId, true);
         }
 
-        async function viewLedger(accId) {
+        // ================= LAZY-LOADED LEDGER ENGINE =================
+        async function viewLedger(accId, reset = true) {
             const content = document.getElementById('content-area');
-            content.innerHTML = '<div class="flex justify-center mt-20"><div class="loader"></div></div>';
             
-            const acc = userAccounts.find(a => a.id == accId);
-            const group = accountGroups.find(g => g.id == acc.group_id);
-            const { data: myEntriesRaw } = await dbClient.from('voucher_entries').select('*').eq('account_id', accId).limit(2000);
-            if(!myEntriesRaw || myEntriesRaw.length === 0) return content.innerHTML = '<div class="p-10 text-center text-gray-400 text-sm font-bold uppercase tracking-widest">No transactions found.</div>';
-
-            const vIds = [...new Set(myEntriesRaw.map(e => e.voucher_id))];
-            
-            let allVouchers = [];
-            let relatedEntries = [];
-            
-            for (let i = 0; i < vIds.length; i += 100) {
-                const chunkIds = vIds.slice(i, i + 100);
-                const { data: vChunk } = await dbClient.from('vouchers').select('*').in('id', chunkIds);
-                const { data: eChunk } = await dbClient.from('voucher_entries').select('*').in('voucher_id', chunkIds);
-                if (vChunk) allVouchers.push(...vChunk);
-                if (eChunk) relatedEntries.push(...eChunk);
-            }
-            
-            let ledgerData = myEntriesRaw.map(e => {
-                const v = allVouchers.find(x => x.id == e.voucher_id);
-                if (!v) return null;
-
-                const otherEntries = relatedEntries.filter(r => r.voucher_id == e.voucher_id && r.account_id != accId);
+            if (reset) {
+                ledgerPage = 0;
+                ledgerHasMore = true;
+                ledgerLoading = false;
+                activeLedgerAccId = accId;
                 
-                let title = 'Transaction';
-                if (otherEntries.length === 1) {
-                    const otherAcc = userAccounts.find(u => u.id == otherEntries[0].account_id);
-                    if (otherAcc) title = otherAcc.name; 
-                } else if (otherEntries.length > 1) {
-                    title = `Split Transaction (${otherEntries.length} items)`;
-                }
+                const acc = userAccounts.find(a => a.id == accId);
+                const group = accountGroups.find(g => g.id == acc.group_id);
+                activeLedgerRunningBal = parseFloat(acc.opening_balance) || 0;
 
-                if (title === 'Transaction' && v.narration) title = v.narration;
-                
-                return { ...e, date: v.date, narration: v.narration, displayTitle: title, vId: v.id };
-            }).filter(Boolean).sort((a, b) => new Date(a.date) - new Date(b.date));
-
-            let runningBal = parseFloat(acc.opening_balance) || 0;
-            const rows = ledgerData.map(d => {
-                const amt = parseFloat(d.amount);
-                let isPositive = (group.nature === 'Assets' || group.nature === 'Expenses') ? (d.type === 'Dr') : (d.type === 'Cr');
-
-                runningBal += isPositive ? amt : -amt;
-                const balColor = runningBal >= 0 ? 'text-gray-600' : 'text-red-500';
-                const amtColor = isPositive ? 'text-green-600' : 'text-red-600';
-
-                return `
-                <div class="px-3 py-3 border-b border-gray-100 flex justify-between items-center text-sm hover:bg-gray-50 transition-colors last:border-0">
-                    <div class="w-2/3 pr-2 min-w-0">
-                        <div class="font-semibold text-gray-900 text-sm truncate leading-tight">${d.displayTitle}</div>
-                        <div class="text-[10px] text-gray-400 mt-0.5 truncate font-medium">${d.narration && d.narration !== d.displayTitle ? d.narration + ' • ' : ''}${formatDate(d.date)}</div>
-                    </div>
-                    <div class="text-right flex flex-col items-end gap-1.5 shrink-0">
-                        <div class="flex items-center gap-2">
-                            <div class="font-inter font-semibold text-sm ${amtColor}">${isPositive ? '+' : '-'}${amt.toLocaleString('en-IN')}</div>
-                            <button onclick="editVoucher('${d.vId}')" class="text-gray-300 hover:text-blue-600 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg></button>
-                            <button onclick="deleteVoucher('${d.vId}')" class="text-gray-300 hover:text-red-500 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                content.innerHTML = `
+                    <div class="page-enter pb-32">
+                        <div class="bg-white rounded-md shadow-flat border border-gray-200 overflow-hidden">
+                            <div class="p-3 bg-gray-50 border-b border-gray-200 flex items-center gap-3">
+                                <button onclick="renderAccounts(true)" class="p-1.5 border border-gray-200 bg-white rounded-md text-gray-500 active:bg-gray-100 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                                </button>
+                                <div class="min-w-0">
+                                    <h2 class="font-bold text-sm text-gray-900 truncate">${acc.name}</h2>
+                                    <div class="text-[9px] font-bold text-brand uppercase tracking-widest">${group.name}</div>
+                                </div>
+                            </div>
+                            <div id="ledger-feed-container" class="flex flex-col"></div>
+                            <div id="ledger-feed-loading" class="p-4 flex justify-center hidden"><div class="loader"></div></div>
                         </div>
-                        <div class="text-[9px] font-inter font-bold tracking-wider ${balColor}">₹${runningBal.toLocaleString('en-IN')}</div>
-                    </div>
-                </div>`;
+                    </div>`;
+
+                content.onscroll = () => {
+                    if (content.scrollTop + content.clientHeight >= content.scrollHeight - 50) {
+                        loadMoreLedgerFeed();
+                    }
+                };
+            }
+
+            await loadMoreLedgerFeed();
+        }
+
+        async function loadMoreLedgerFeed() {
+            if (ledgerLoading || !ledgerHasMore || !activeLedgerAccId) return;
+            ledgerLoading = true;
+            document.getElementById('ledger-feed-loading')?.classList.remove('hidden');
+
+            const pageSize = 25;
+            const from = ledgerPage * pageSize;
+            const to = from + pageSize - 1;
+
+            const acc = userAccounts.find(a => a.id == activeLedgerAccId);
+            const group = accountGroups.find(g => g.id == acc.group_id);
+
+            const { data: myEntries, error } = await dbClient.from('voucher_entries')
+                .select('*')
+                .eq('account_id', activeLedgerAccId)
+                .eq('user_id', currentUser.id)
+                .order('id', { ascending: false })
+                .range(from, to);
+
+            if (error || !myEntries || myEntries.length === 0) {
+                ledgerHasMore = false;
+                ledgerLoading = false;
+                document.getElementById('ledger-feed-loading')?.classList.add('hidden');
+                if (ledgerPage === 0) {
+                    document.getElementById('ledger-feed-container').innerHTML = '<div class="p-8 text-center text-gray-400 text-xs font-bold uppercase tracking-widest">No transactions recorded</div>';
+                }
+                return;
+            }
+
+            const vIds = myEntries.map(e => e.voucher_id);
+            const { data: vList } = await dbClient.from('vouchers').select('*').in('id', vIds).eq('user_id', currentUser.id);
+            const { data: relatedEntries } = await dbClient.from('voucher_entries').select('*').in('voucher_id', vIds).eq('user_id', currentUser.id);
+
+            let rowsHtml = '';
+            myEntries.forEach(e => {
+                const v = (vList || []).find(x => x.id == e.voucher_id);
+                if (!v) return;
+
+                const others = (relatedEntries || []).filter(r => r.voucher_id == e.voucher_id && r.account_id != activeLedgerAccId);
+                let title = 'Transaction';
+                if (others.length === 1) {
+                    const otherAcc = userAccounts.find(u => u.id == others[0].account_id);
+                    if (otherAcc) title = otherAcc.name;
+                } else if (others.length > 1) {
+                    title = `Split Transaction (${others.length} items)`;
+                }
+                if (title === 'Transaction' && v.narration) title = v.narration;
+
+                const amt = parseFloat(e.amount);
+                let isPositive = (group.nature === 'Assets' || group.nature === 'Expenses') ? (e.type === 'Dr') : (e.type === 'Cr');
+                activeLedgerRunningBal += isPositive ? amt : -amt;
+
+                const amtColor = isPositive ? 'text-green-600' : 'text-red-600';
+                const balColor = activeLedgerRunningBal >= 0 ? 'text-gray-600' : 'text-red-500';
+
+                rowsHtml += `
+                    <div class="px-3 py-3 border-b border-gray-100 flex justify-between items-center text-sm hover:bg-gray-50 transition-colors last:border-0">
+                        <div class="w-2/3 pr-2 min-w-0">
+                            <div class="font-semibold text-gray-900 text-sm truncate leading-tight">${title}</div>
+                            <div class="text-[10px] text-gray-400 mt-0.5 truncate font-medium">${v.narration && v.narration !== title ? v.narration + ' • ' : ''}${formatDate(v.date)}</div>
+                        </div>
+                        <div class="text-right flex flex-col items-end gap-1.5 shrink-0">
+                            <div class="flex items-center gap-2">
+                                <div class="font-inter font-semibold text-sm ${amtColor}">${isPositive ? '+' : '-'}${amt.toLocaleString('en-IN')}</div>
+                                <button onclick="editVoucher('${v.id}')" class="text-gray-300 hover:text-blue-600 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg></button>
+                                <button onclick="deleteVoucher('${v.id}')" class="text-gray-300 hover:text-red-500 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                            </div>
+                            <div class="text-[9px] font-inter font-bold tracking-wider ${balColor}">₹${activeLedgerRunningBal.toLocaleString('en-IN')}</div>
+                        </div>
+                    </div>`;
             });
 
-            content.innerHTML = `
-                <div class="page-enter pb-32">
-                    <div class="bg-white rounded-md shadow-flat border border-gray-200 overflow-hidden">
-                        <div class="p-3 bg-gray-50 border-b border-gray-200 flex items-center gap-3">
-                            <button onclick="renderAccounts(true)" class="p-1.5 border border-gray-200 bg-white rounded-md text-gray-500 active:bg-gray-100 transition-colors">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                            </button>
-                            <div class="min-w-0">
-                                <h2 class="font-bold text-sm text-gray-900 truncate">${acc.name}</h2>
-                                <div class="text-[9px] font-bold text-brand uppercase tracking-widest">${group.name}</div>
-                            </div>
-                        </div>
-                        <div class="flex flex-col">${rows.reverse().join('')}</div>
-                    </div>
-                </div>`;
+            document.getElementById('ledger-feed-container').insertAdjacentHTML('beforeend', rowsHtml);
+            ledgerPage++;
+            ledgerLoading = false;
+            document.getElementById('ledger-feed-loading')?.classList.add('hidden');
         }
 
         // ================= EDIT / DELETE VOUCHER =================
         async function editVoucher(id) {
-            const { data: voucher } = await dbClient.from('vouchers').select('*').eq('id', id).single();
-            const { data: entries } = await dbClient.from('voucher_entries').select('*').eq('voucher_id', id);
+            const { data: voucher } = await dbClient.from('vouchers').select('*').eq('id', id).eq('user_id', currentUser.id).single();
+            const { data: entries } = await dbClient.from('voucher_entries').select('*').eq('voucher_id', id).eq('user_id', currentUser.id);
             if(!voucher || !entries) return;
 
             let masterType = voucher.type === 'Payment' || voucher.type === 'Contra' ? 'Cr' : 'Dr';
@@ -1507,9 +1609,9 @@
             let masterEntry = entries.find(e => e.type === masterType);
             let splitEntries = entries.filter(e => e.type === splitType);
 
-            if(!masterEntry || splitEntries.length === 0) return alert("Cannot automatically edit this legacy structure.");
+            if(!masterEntry || splitEntries.length === 0) return alert("Cannot automatically edit this entry structure.");
 
-            await dbClient.from('vouchers').delete().eq('id', id);
+            await dbClient.from('vouchers').delete().eq('id', id).eq('user_id', currentUser.id);
 
             nav('entry');
             setTimeout(() => {
@@ -1530,8 +1632,8 @@
 
         async function deleteVoucher(id) { 
             if(confirm("Permanently delete this transaction?")) { 
-                await dbClient.from('vouchers').delete().eq('id', id); 
-                renderDashboard(); 
+                await dbClient.from('vouchers').delete().eq('id', id).eq('user_id', currentUser.id); 
+                renderAccounts(); 
             } 
         }
 
@@ -1542,7 +1644,13 @@
             if(!name) return alert("Name required");
             const g = accountGroups.find(x => x.id == gId); 
             const type = (g.nature === 'Assets' || g.nature === 'Expenses') ? 'Dr' : 'Cr';
-            const { error } = await dbClient.from('accounts').insert({ user_id: currentUser.id, name, group_id: gId, opening_balance: op, opening_balance_type: type });
+            const { error } = await dbClient.from('accounts').insert({ 
+                user_id: currentUser.id, 
+                name, 
+                group_id: gId, 
+                opening_balance: op, 
+                opening_balance_type: type 
+            });
             if(!error) { 
                 document.getElementById('modal-account').classList.add('hidden'); 
                 await refreshAccounts(); 
@@ -1552,7 +1660,7 @@
 
         // ================= SETTINGS =================
         async function renderSettings() {
-            const { data: rec } = await dbClient.from('recurring_setup').select('*');
+            const { data: rec } = await dbClient.from('recurring_setup').select('*').eq('user_id', currentUser.id);
             const html = `
                 <div class="space-y-4 page-enter">
                     <div class="bg-white rounded-md shadow-flat border border-gray-200 overflow-hidden">
@@ -1607,7 +1715,15 @@
             const today = new Date(); let nextDate = new Date(); nextDate.setDate(day);
             if (today.getDate() > day) nextDate.setMonth(nextDate.getMonth() + 1);
 
-            const { error } = await dbClient.from('recurring_setup').insert({ user_id: currentUser.id, name, amount, next_run_date: nextDate.toISOString().split('T')[0], frequency_days: 30, debit_account_id: dId, credit_account_id: cId });
+            const { error } = await dbClient.from('recurring_setup').insert({ 
+                user_id: currentUser.id, 
+                name, 
+                amount, 
+                next_run_date: nextDate.toISOString().split('T')[0], 
+                frequency_days: 30, 
+                debit_account_id: dId, 
+                credit_account_id: cId 
+            });
             if(!error) { 
                 document.getElementById('modal-recurring').classList.add('hidden'); 
                 await checkRecurringDue(); 
@@ -1619,7 +1735,7 @@
 
         async function deleteAccount(id) { 
             if(confirm("Delete account?")) { 
-                const { error } = await dbClient.from('accounts').delete().eq('id', id); 
+                const { error } = await dbClient.from('accounts').delete().eq('id', id).eq('user_id', currentUser.id); 
                 if(error) alert("Remove transactions first"); 
                 else renderAccounts(); 
             } 
@@ -1627,9 +1743,48 @@
 
         async function deleteRecurring(id) { 
             if(confirm("Stop auto-pay?")) { 
-                await dbClient.from('recurring_setup').delete().eq('id', id); 
+                await dbClient.from('recurring_setup').delete().eq('id', id).eq('user_id', currentUser.id); 
                 renderSettings(); 
             } 
+        }
+
+        // ================= SMS ALERT ENGINE =================
+        let detectedSmsPayload = null;
+
+        window.addEventListener('nativeBankSms', (e) => {
+            const { amount, type } = e.detail;
+            if (!amount) return;
+
+            detectedSmsPayload = { amount, type };
+
+            document.getElementById('sms-pop-amount').innerText = `₹${parseFloat(amount).toLocaleString('en-IN')}`;
+            document.getElementById('sms-pop-type').innerText = type;
+            
+            const typeEl = document.getElementById('sms-pop-type');
+            typeEl.className = type === 'Receipt' ? 'text-xs font-bold text-green-600' : 'text-xs font-bold text-red-600';
+
+            document.getElementById('modal-sms-alert').classList.remove('hidden');
+        });
+
+        function dismissSmsModal() {
+            document.getElementById('modal-sms-alert').classList.add('hidden');
+            detectedSmsPayload = null;
+        }
+
+        function applySmsToEntry() {
+            if (!detectedSmsPayload) return;
+
+            const { amount, type } = detectedSmsPayload;
+            dismissSmsModal();
+
+            nav('entry');
+            setTimeout(() => {
+                switchEntryType(type);
+                if (splitLines.length > 0) {
+                    splitLines[0].amount = amount;
+                    renderSplitLines();
+                }
+            }, 250);
         }
 
         init();
